@@ -15,6 +15,9 @@
   FM.sidebar.render(sidebar, { root, page, site });
   FM.clock.start(document.getElementById('clock'));
 
+  // footer signature
+  FM.footer.render(document.getElementById('site-footer'), { root, site });
+
   // "on this page" (articles only)
   const article = document.querySelector('.article');
   if (article) FM.scrollSpy.init(article, sidebar);

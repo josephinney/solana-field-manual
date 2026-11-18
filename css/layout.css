@@ -60,7 +60,17 @@
 .content{padding:28px 40px 56px;min-width:0}
 .content > *{max-width:700px}
 
-footer{font-size:12px;color:var(--dim)}
+/* footer: terminal-style signature built by js/helpers/footer.js */
+footer{font-size:13px;color:var(--dim);margin-top:4px}
+footer .whoami{margin:0 0 4px}
+footer .whoami .pr{color:var(--dim)}
+footer .gh{display:inline-flex;align-items:center;gap:8px;color:var(--dim);text-decoration:none}
+footer .gh img{opacity:.6;transition:opacity .15s}
+footer .gh:hover,footer .gh:focus-visible{color:var(--fg-hi)}
+footer .gh:hover img,footer .gh:focus-visible img{opacity:1}
+footer .report{margin:10px 0 0}
+footer .report a{color:var(--dim)}
+footer .report a:hover,footer .report a:focus-visible{color:var(--fg-hi)}
 
 /* ---------- small screens ---------- */
 @media (max-width:820px){

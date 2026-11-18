@@ -13,6 +13,8 @@
 window.SITE = {
   title: 'Solana Field Manual',
   updated: '18 Nov 2026',
+  author: { user: 'josephinney', url: 'https://github.com/josephinney' },
+  repo: 'https://github.com/josephinney/solana-field-manual',
   articles: [
     {
       id: '00',

@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Solana Field Manual</title>
+<meta name="description" content="Short technical guides about Solana for people starting from zero: accounts, tokens, wallets, transactions, validators and your first program.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Solana Field Manual">
+<meta property="og:description" content="Short technical guides about Solana for people starting from zero.">
+<meta property="og:url" content="https://josephinney.github.io/solana-field-manual/">
+<meta property="og:image" content="https://josephinney.github.io/solana-field-manual/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
@@ -16,7 +28,7 @@
   <aside class="side" id="sidebar" aria-label="Site index"></aside>
 
   <main class="content">
-    <h1>SOLANA FIELD MANUAL<span class="cur" aria-hidden="true"></span></h1>
+    <h1>SOLANA FIELD MANUAL</h1>
     <p class="lead">Solana Field Manual is a set of short technical guides about Solana for people who are starting
       from zero. You do not need to know anything about blockchains or programming to begin. Each guide covers a single
       topic, explains it in plain technical language and ends when the topic is covered.</p>
@@ -27,19 +39,26 @@
       two directions you can take once you know the basics.</p>
     <p>Every guide includes diagrams, and when a command is involved you see what the terminal prints, so you know what
       to expect before you run it. The hands-on parts use devnet, Solana's test network, where SOL has no value and
-      mistakes cost nothing. Facts that change over time, such as fees or network parameters, were checked against
-      official sources on the date shown in each guide, and the <a href="glossary.html">glossary</a> collects every
-      term in one place.</p>
+      mistakes cost nothing. Facts that change over time, such as fees or network parameters, come from official
+      documentation, and the <a href="glossary.html">glossary</a> collects every term in one place. Solana changes
+      quickly, so if you find something out of date, you can report it from the link at the bottom of any page.</p>
 
     <nav class="start" aria-label="Start reading">
       <a class="btn" id="start-link" href="articles/00-centralized-vs-decentralized.html">start reading &gt;&gt;</a>
     </nav>
+
+    <p class="disclaimer">For education only. Nothing here is financial advice, and this guide is not affiliated
+      with the Solana Foundation.</p>
+
+    <hr>
+    <footer id="site-footer"></footer>
   </main>
 </div>
 
 <script src="data/articles.js" defer></script>
 <script src="js/helpers/clock.js" defer></script>
 <script src="js/helpers/sidebar.js" defer></script>
+<script src="js/helpers/footer.js" defer></script>
 <script src="js/helpers/scroll-spy.js" defer></script>
 <script src="js/helpers/copy-code.js" defer></script>
 <script src="js/helpers/glossary-filter.js" defer></script>
