@@ -1,6 +1,6 @@
 # Solana Field Manual
 
-Blog estático sobre Solana.
+Blog estático sobre Solana con estilo de terminal retro. Es HTML, CSS y JavaScript puros: no necesita build, frameworks ni `npm install`.
 
 ## Estructura
 
@@ -23,6 +23,7 @@ solana-field-manual/
 │       ├── sidebar.js          menú lateral
 │       ├── scroll-spy.js       "on this page" + barra de progreso
 │       ├── copy-code.js        botones [copy]
+│       ├── highlight.js        colores del código (rust, typescript, bash, json)
 │       └── glossary-filter.js  buscador del glosario
 └── data/
     ├── articles.js             lista de artículos

@@ -17,21 +17,27 @@
 
   <main class="content">
     <h1>SOLANA FIELD MANUAL<span class="cur" aria-hidden="true"></span></h1>
-    <p class="lead">Short technical guides about Solana for people starting from zero. Each file covers one topic
-      with examples, diagrams and code you can run on devnet, the Solana test network.</p>
-    <p class="meta">series 1 · fundamentals · last updated 18 Nov 2026</p>
+    <p class="lead">Solana Field Manual is a set of short technical guides about Solana for people who are starting
+      from zero. You do not need to know anything about blockchains or programming to begin. Each guide covers a single
+      topic, explains it in plain technical language and ends when the topic is covered.</p>
+    <p>The guides start with the idea behind decentralized networks and what makes Solana different. Then they move to
+      the pieces you deal with every day: accounts, tokens, wallets and keys, transactions and fees, and the validators
+      that keep the network running. From there they go into programs, the code that runs on Solana. You write, test and
+      deploy your first one with Anchor, and then learn the checks that keep a program safe. The last guide describes the
+      two directions you can take once you know the basics.</p>
+    <p>Every guide includes diagrams, and when a command is involved you see what the terminal prints, so you know what
+      to expect before you run it. The hands-on parts use devnet, Solana's test network, where SOL has no value and
+      mistakes cost nothing. Facts that change over time, such as fees or network parameters, were checked against
+      official sources on the date shown in each guide, and the <a href="glossary.html">glossary</a> collects every
+      term in one place.</p>
 
-    <h2>Files</h2>
-    <div class="ls"><table><tbody id="file-list"></tbody></table></div>
-    <noscript><p><a href="articles/01-what-is-solana.html">01 what is solana</a> · <a href="glossary.html">glossary</a></p></noscript>
-
-    <hr>
-    <footer>solana field manual · v0.5 · last updated 18 Nov 2026</footer>
+    <nav class="start" aria-label="Start reading">
+      <a class="btn" id="start-link" href="articles/00-centralized-vs-decentralized.html">start reading &gt;&gt;</a>
+    </nav>
   </main>
 </div>
 
 <script src="data/articles.js" defer></script>
-<script src="data/glossary.js" defer></script>
 <script src="js/helpers/clock.js" defer></script>
 <script src="js/helpers/sidebar.js" defer></script>
 <script src="js/helpers/scroll-spy.js" defer></script>

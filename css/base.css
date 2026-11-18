@@ -14,6 +14,8 @@
   --amber:#d9a55b;       /* warnings, linked values in figures */
   --red:#d48873;         /* critical warnings, broken links in figures */
   --violet:#b98cff;      /* "SOLANA" in the site name */
+  --violet-soft:#ad98d8; /* code: attributes and macros */
+  --sage:#a3b38f;        /* code: strings */
 
   --font-display:'VT323','Courier New',monospace;
   --font-body:'IBM Plex Mono','Courier New',monospace;

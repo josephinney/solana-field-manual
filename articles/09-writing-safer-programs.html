@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writing Safer Programs · Solana Field Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/components.css">
+</head>
+<body data-root="../" data-page="09">
+<div class="layout">
+  <aside class="side" id="sidebar" aria-label="Site index"></aside>
+
+  <main class="content">
+    <article class="article">
+      <p class="meta">~/manual/09-writing-safer-programs.txt</p>
+      <h1>Writing safer programs</h1>
+      <p class="lead">A Solana program is public. Anyone can call it, and the caller decides which accounts go into the
+        transaction. Most security bugs in Solana programs come from trusting an account that nobody checked. This article
+        takes a small Anchor program and shows which attack each of its checks stops.</p>
+      <ul class="meta-list">
+        <li><span class="k">level</span>beginner</li>
+        <li><span class="k">prerequisites</span>reading simple Anchor code</li>
+        <li><span class="k">time</span>~10 min</li>
+        <li><span class="k">tools</span>Anchor 1.2.2</li>
+      </ul>
+      <hr>
+
+      <h2 id="s1" data-short="the main idea"><span class="n">01</span>Never trust the accounts you receive</h2>
+      <p>Every Solana transaction lists the accounts its instructions will use, and it is the caller who writes that list.
+        Your program cannot assume that the account called <code>counter</code> really is the right counter, or that the
+        account called <code>user</code> really agreed to the call. It has to check, and each missing check is a door that
+        someone can open.</p>
+      <p>The examples use a counter program written with Anchor. Each wallet has its own counter, stored in an account whose
+        address is a PDA calculated from the word <code>"counter"</code> and the wallet's address. The
+        <code>initialize</code> instruction creates the counter and <code>increment</code> adds one to it. These are the
+        accounts that <code>increment</code> receives:</p>
+
+      <div class="code">
+        <div class="label"><span>rust</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>#[derive(Accounts)]
+pub struct Increment&lt;&#x27;info&gt; {
+    pub user: Signer&lt;&#x27;info&gt;,
+    #[account(
+        mut,
+        seeds = [b&quot;counter&quot;, user.key().as_ref()],
+        bump
+    )]
+    pub counter: Account&lt;&#x27;info, Counter&gt;,
+}</pre>
+      </div>
+
+      <p>It looks like a plain list of accounts, but almost every line is a security check. Anchor reads these declarations
+        and writes the code that verifies them before your instruction runs. If any check fails, the transaction stops and
+        nothing changes.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 254" role="img" aria-labelledby="f91-t"><title id="f91-t">Each line of the Increment accounts is a check. Signer stops acting for a wallet without its signature, Account stops fake accounts from other programs, and the seeds stop passing someone else's counter.</title><defs><marker id="f91-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f91-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f91-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><text class="t-dim" x="8" y="16">the check in the code</text><text class="t-dim" x="424" y="16">the attack it stops</text><rect class="box" x="8" y="28" width="330" height="58"/><text class="t-code" x="20" y="53">user: Signer&lt;'info&gt;</text><text class="t-dim" x="20" y="72">the wallet signed</text><path class="ln-fg" d="M338,57 H411" marker-end="url(#f91-fg)"/><rect class="box dim" x="414" y="28" width="298" height="58"/><path class="ln-red solid" d="M427,50 L441,64 M441,50 L427,64"/><text x="454" y="53">acting for a wallet</text><text x="454" y="71">without its signature</text><rect class="box" x="8" y="102" width="330" height="58"/><text class="t-code" x="20" y="127">counter: Account&lt;'info, Counter&gt;</text><text class="t-dim" x="20" y="146">owner and type</text><path class="ln-fg" d="M338,131 H411" marker-end="url(#f91-fg)"/><rect class="box dim" x="414" y="102" width="298" height="58"/><path class="ln-red solid" d="M427,124 L441,138 M441,124 L427,138"/><text x="454" y="127">a fake account made</text><text x="454" y="145">by another program</text><rect class="box" x="8" y="176" width="330" height="58"/><text class="t-code" x="20" y="201">seeds = ["counter", user], bump</text><text class="t-dim" x="20" y="220">the right address</text><path class="ln-fg" d="M338,205 H411" marker-end="url(#f91-fg)"/><rect class="box dim" x="414" y="176" width="298" height="58"/><path class="ln-red solid" d="M427,198 L441,212 M441,198 L427,212"/><text x="454" y="201">passing someone</text><text x="454" y="219">else's counter</text></svg>
+        </div>
+        <figcaption>fig. 1: three lines, three checks.</figcaption>
+      </figure>
+
+      <h2 id="s2" data-short="who signed"><span class="n">02</span>Check who signed</h2>
+      <p>Declaring <code>user</code> as a <code>Signer</code> means the transaction must carry that wallet's signature. To
+        see why it matters, imagine the same struct written with <code>UncheckedAccount</code>, a type that accepts any
+        account without checking anything:</p>
+
+      <div class="code">
+        <div class="label"><span>rust · unsafe version, do not use</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>#[derive(Accounts)]
+pub struct Increment&lt;&#x27;info&gt; {
+    /// CHECK: nothing checks that this wallet signed
+    pub user: UncheckedAccount&lt;&#x27;info&gt;,
+    #[account(
+        mut,
+        seeds = [b&quot;counter&quot;, user.key().as_ref()],
+        bump
+    )]
+    pub counter: Account&lt;&#x27;info, Counter&gt;,
+}</pre>
+      </div>
+
+      <p>With this version, Bob could build a transaction that passes Ana's address as <code>user</code>, without her
+        signature. The seeds would point to Ana's counter, so the check on the address would pass, and Bob would be
+        changing Ana's counter. With <code>Signer</code>, the transaction is rejected, because only Ana can produce her
+        signature.</p>
+      <p>Anchor makes this mistake hard to make by accident. Before it compiles a program with an
+        <code>UncheckedAccount</code>, it asks for a comment starting with <code>///&nbsp;CHECK:</code> that explains why the
+        account is safe, and <code>anchor build</code> stops with an error if the comment is missing. When you write one,
+        read it again and ask whether it is true.</p>
+
+      <h2 id="s3" data-short="whose account"><span class="n">03</span>Check whose account it is</h2>
+      <p>Declaring <code>counter</code> as <code>Account&lt;'info, Counter&gt;</code> adds two more checks. The first one
+        is that the account must belong to this program, which means its <strong>owner</strong> must be the program's
+        address. The second one is that its first 8 bytes must be the <strong>discriminator</strong> of
+        <code>Counter</code>, the mark Anchor writes when it creates an account of that type.</p>
+      <p>Without these checks, someone could create an account with another program, fill it with any data they want and
+        pass it as if it were a counter. In this program the seeds already fix the address, but many accounts are not PDAs,
+        for example a settings account or a price feed. For those accounts, the owner and type checks are what keep a fake
+        account out. If one of them fails, Anchor answers with <code>AccountOwnedByWrongProgram</code> or
+        <code>AccountDiscriminatorMismatch</code>.</p>
+
+      <h2 id="s4" data-short="the right address"><span class="n">04</span>Check that it is the right account</h2>
+      <p>An account can belong to your program and be a real <code>Counter</code>, and still be the wrong one. Ana's
+        counter and Bob's counter pass the checks of the previous section equally well. What tells them apart is the
+        address, and that is what <code>seeds</code> and <code>bump</code> verify:</p>
+      <div class="code">
+        <div class="label"><span>rust</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>seeds = [b"counter", user.key().as_ref()],
+bump</pre>
+      </div>
+      <p>Anchor calculates the PDA of <code>"counter"</code> and the address of the wallet that signed, and compares it
+        with the account it received. If Bob signs and passes Ana's counter, the two addresses do not match:</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 230" role="img" aria-labelledby="f92-t"><title id="f92-t">Bob signs and passes Ana's counter. Anchor calculates the PDA of counter and Bob's address, gets a different address, and rejects the transaction with ConstraintSeeds.</title><defs><marker id="f92-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f92-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f92-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><rect class="box" x="8" y="20" width="320" height="128"/><text class="t-hi" x="20" y="44">TRANSACTION FROM BOB</text><line class="sep" x1="8" y1="54" x2="328" y2="54"/><text class="t-dim" x="20" y="78">signed by</text><text x="120" y="78">Bob  5C8y…v7Jg</text><text class="t-dim" x="20" y="102">counter</text><text class="t-am" x="120" y="102">2GUZ…XprM</text><text class="t-dim" x="120" y="122">(Ana's counter)</text><path class="ln-fg" d="M328,84 H389" marker-end="url(#f92-fg)"/><rect class="box" x="392" y="20" width="320" height="128"/><text class="t-hi" x="404" y="44">ANCHOR CHECKS THE SEEDS</text><line class="sep" x1="392" y1="54" x2="712" y2="54"/><text class="t-dim" x="404" y="78">expected</text><text x="494" y="78">PDA of ["counter", Bob]</text><text x="494" y="98">= 7nqb…TJbu</text><text class="t-dim" x="404" y="126">received</text><text class="t-am" x="494" y="126">2GUZ…XprM</text><path class="ln-red solid" d="M199,179 L213,193 M213,179 L199,193"/><text class="t-red" x="226" y="191">7nqb…TJbu ≠ 2GUZ…XprM</text><text class="t-dim" x="360" y="216" text-anchor="middle">ConstraintSeeds: the transaction stops and the count does not change</text></svg>
+        </div>
+        <figcaption>fig. 2: Bob tries to use Ana's counter.</figcaption>
+      </figure>
+
+      <p>A good habit is to write a test for this attack, so you know the check works and it keeps working when the code
+        changes. This test creates a second wallet and tries to increment the first wallet's counter with it. It goes in the
+        TypeScript test file, where <code>program</code> is the client for the program and <code>counter</code> is the
+        first wallet's counter address:</p>
+
+      <div class="code">
+        <div class="label"><span>typescript · tests/counter.ts</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>import { expect } from &quot;chai&quot;;
+
+it(&quot;does not let another wallet use this counter&quot;, async () =&gt; {
+  // A second wallet that tries to increment this wallet&#x27;s counter
+  const other = anchor.web3.Keypair.generate();
+
+  let failure: anchor.AnchorError | undefined;
+  try {
+    await program.methods
+      .increment()
+      .accountsPartial({ user: other.publicKey, counter })
+      .signers([other])
+      .rpc();
+  } catch (err) {
+    failure = err as anchor.AnchorError;
+  }
+
+  console.log(&quot;    error:     &quot;, failure?.error.errorCode.code);
+  console.log(&quot;    message:   &quot;, failure?.error.errorMessage);
+  expect(failure?.error.errorCode.code).to.equal(&quot;ConstraintSeeds&quot;);
+});</pre>
+      </div>
+
+      <p>The test passes when the transaction fails with the right error. <code>ConstraintSeeds</code> is the error Anchor
+        returns when an account does not match its seeds:</p>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 1</span><span>example output</span></div>
+<pre><span class="pr">$</span> <span class="cmd">anchor test</span>
+<span class="pr">…build, start the local network and deploy…</span>
+
+  counter
+    initialize: 3Jx8kR2v…Wq2P
+    increment:  5Tn1aHc9…Vb7c
+    counter:    2GUZnNiyErGJRXUCzG7DPZ45YEkPEWt1o75hoZrJXprM
+    count:      1
+    ✔ creates and increments the counter (1250ms)
+    error:      <span class="hl">ConstraintSeeds</span>          <span class="ann">← the program refused the other wallet</span>
+    message:    A seeds constraint was violated
+    ✔ does not let another wallet use this counter (412ms)  <span class="ann">← ✔: the attack failed</span>
+
+
+  <span class="hl">2 passing</span> (2s)</pre>
+        <figcaption>the test on the local network. The second test passes because the attack fails.</figcaption>
+      </figure>
+
+      <div class="note">
+        <span class="t">[i] tests that must fail</span>
+        <p>It is natural to test that the program does what it should. It is just as important to test that it refuses
+          what it should refuse: a missing signature, someone else's account, an amount that is too large. Attackers try
+          exactly those cases.</p>
+      </div>
+
+      <h2 id="s5" data-short="numbers"><span class="n">05</span>Be careful with numbers</h2>
+      <p>A <code>u64</code> can hold numbers up to about 18 quintillion. If a calculation goes past that limit it
+        <strong>overflows</strong>, and a subtraction that goes below zero underflows. Without protection, the result wraps
+        around: the maximum plus one becomes 0, and 0 minus one becomes the maximum. In a program that stores balances, that
+        could turn a small balance into a huge one.</p>
+      <p>Anchor projects include a setting in <code>Cargo.toml</code> that turns these cases into errors:</p>
+      <div class="code">
+        <div class="label"><span>toml · Cargo.toml</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>[profile.release]
+overflow-checks = true</pre>
+      </div>
+      <p>Keep it on. With it, <code>count += 1</code> stops the transaction instead of wrapping around, but the error does
+        not say what went wrong. You can make the intent visible with <code>checked_add</code>, which gives back <code>None</code>, Rust's way
+        of saying there is no value, when the result does not fit. Then you turn that into an error with a clear name:</p>
+
+      <div class="code">
+        <div class="label"><span>rust</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>pub fn increment(ctx: Context&lt;Increment&gt;) -&gt; Result&lt;()&gt; {
+    let counter = &amp;mut ctx.accounts.counter;
+    counter.count = counter.count.checked_add(1).ok_or(CounterError::Overflow)?;
+    msg!(&quot;Counter is now {}&quot;, counter.count);
+    Ok(())
+}
+
+#[error_code]
+pub enum CounterError {
+    #[msg(&quot;The counter reached its maximum value&quot;)]
+    Overflow,
+}</pre>
+      </div>
+
+      <p>A counter will never reach the limit in practice, but the same pattern protects every calculation with balances,
+        prices or fees. Use <code>checked_sub</code> for subtractions, <code>checked_mul</code> for multiplications and
+        <code>checked_div</code> for divisions.</p>
+
+      <h2 id="s6" data-short="create once"><span class="n">06</span>Create each account only once</h2>
+      <p>The <code>initialize</code> instruction creates the counter with <code>init</code> and sets
+        <code>count</code> to 0. If someone calls it again for the same wallet, <code>init</code> fails because the account
+        already exists, and the count is safe.</p>
+      <p>Anchor also offers <code>init_if_needed</code>, which creates the account only when it does not exist yet and
+        otherwise uses the existing one. It is convenient, but in this program it would be a bug:</p>
+
+      <div class="code">
+        <div class="label"><span>rust · initialize with init_if_needed, do not use here</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>#[account(
+    init_if_needed,
+    payer = user,
+    space = 8 + Counter::INIT_SPACE,
+    seeds = [b&quot;counter&quot;, user.key().as_ref()],
+    bump
+)]
+pub counter: Account&lt;&#x27;info, Counter&gt;,</pre>
+      </div>
+
+      <p>With this version, a second call to <code>initialize</code> would not fail. It would run on the existing counter
+        and set <code>count</code> back to 0. This is called a <strong>reinitialization</strong> bug, and in a program that
+        stores who owns what, it can let someone overwrite data that was already there. That is why Anchor only accepts
+        <code>init_if_needed</code> when you enable the <code>init-if-needed</code> feature in <code>Cargo.toml</code>. If
+        you use it, make sure the instruction does not overwrite data when the account already exists.</p>
+
+      <h2 id="s7" data-short="who can change it"><span class="n">07</span>Know who can change your program</h2>
+      <p>When you deploy a program, the wallet that deploys it becomes its <strong>upgrade authority</strong>, the only
+        address that can replace its code later. Whoever controls that key controls the program, so it deserves the same
+        care as a wallet with funds. You can see who it is with:</p>
+
+      <div class="code">
+        <div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>solana program show &lt;PROGRAM_ID&gt;</pre>
+      </div>
+
+      <p>Projects that handle real money usually move the upgrade authority to a multisig, an account that needs the
+        signatures of several people to act. When a program is finished, it can also be made final, and from then on nobody can change or
+        close it:</p>
+
+      <div class="code">
+        <div class="label"><span>bash · irreversible</span><button class="copy" type="button">copy</button></div>
+<pre>solana program set-upgrade-authority &lt;PROGRAM_ID&gt; --final</pre>
+      </div>
+
+      <div class="note crit">
+        <span class="t">[!] --final cannot be undone</span>
+        <p>Once a program is final, there is no way to fix a bug in it. Only use it when you are sure the code is
+          ready.</p>
+      </div>
+
+      <h2 id="s8" data-short="before real money"><span class="n">08</span>Before you handle real money</h2>
+      <p>The checks in this article cover the most common mistakes, but they are not a guarantee. Before a program holds
+        funds that belong to other people, write tests for every case that should fail, ask other developers to review the
+        code and have it checked by a professional <strong>audit</strong>, an independent review by a team that
+        specializes in finding vulnerabilities. Even audited programs can have bugs, which is why some projects also limit
+        how much money a new program can hold during its first weeks.</p>
+
+      <h2 id="s9" data-short="summary"><span class="n">09</span>Summary</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>In the code</th><th>What it stops</th></tr></thead>
+        <tbody>
+          <tr><td><code>Signer</code></td><td>Acting for a wallet without its signature.</td></tr>
+          <tr><td><code>Account&lt;'info, T&gt;</code></td><td>Accounts from another program, or with data of another type.</td></tr>
+          <tr><td><code>seeds, bump</code></td><td>Passing someone else's account of the right type.</td></tr>
+          <tr><td><code>overflow-checks</code>, <code>checked_add</code></td><td>Numbers that wrap around past their limit.</td></tr>
+          <tr><td><code>init</code></td><td>Creating an account twice and erasing its data.</td></tr>
+          <tr><td><code>///&nbsp;CHECK:</code></td><td>Forgetting why an unchecked account is safe.</td></tr>
+          <tr><td>upgrade authority</td><td>Losing control of who can change the code.</td></tr>
+        </tbody>
+      </table></div>
+      <p>The rule behind all of them is the same. The caller chooses the accounts, so every account must prove it is the
+        one your program expects before your code trusts it.</p>
+
+      <h3>Sources</h3>
+      <ul class="meta">
+        <li><a href="https://www.anchor-lang.com/docs/references/account-types" target="_blank" rel="noopener">Anchor: account types</a></li>
+        <li><a href="https://www.anchor-lang.com/docs/references/account-constraints" target="_blank" rel="noopener">Anchor: account constraints</a></li>
+        <li><a href="https://solana.com/docs/programs/deploying" target="_blank" rel="noopener">Solana: deploying programs</a></li>
+        <li><a href="https://docs.anza.xyz/cli/examples/deploy-a-program" target="_blank" rel="noopener">Anza: deploy a program (upgrade authority)</a></li>
+      </ul>
+    </article>
+
+    <hr>
+    <nav class="pager" id="pager" aria-label="Previous and next"></nav>
+    <hr>
+    <footer>solana field manual · last updated 18 Nov 2026</footer>
+  </main>
+</div>
+
+<script src="../data/articles.js" defer></script>
+<script src="../js/helpers/clock.js" defer></script>
+<script src="../js/helpers/sidebar.js" defer></script>
+<script src="../js/helpers/scroll-spy.js" defer></script>
+<script src="../js/helpers/copy-code.js" defer></script>
+<script src="../js/helpers/highlight.js" defer></script>
+<script src="../js/helpers/glossary-filter.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>

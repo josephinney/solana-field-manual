@@ -26,7 +26,6 @@
         <li><span class="k">level</span>beginner</li>
         <li><span class="k">prerequisites</span>none</li>
         <li><span class="k">reading time</span>~9 min</li>
-        <li><span class="k">facts verified</span>18 Nov 2026</li>
       </ul>
       <hr>
 
@@ -125,7 +124,7 @@ pub fn increment(ctx: Context&lt;Increment&gt;) -&gt; Result&lt;()&gt; {
 
       <figure class="fig">
         <div class="wrap">
-          <svg viewBox="0 0 720 264" role="img" aria-labelledby="f73-t"><title id="f73-t">A transaction calls a swap program, which calls the Token Program twice: once with Ana’s signature to move her tokens into the pool, and once signing for the pool PDA to send tokens back.</title><defs><marker id="f73-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f73-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f73-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><rect class="box" x="8" y="92" width="170" height="64"/><text class="t-hi" x="20" y="122.0">TRANSACTION</text><text class="t-dim" x="20" y="140.0">signed by Ana</text><rect class="box" x="256" y="92" width="180" height="64"/><text class="t-hi" x="268" y="122.0">SWAP PROGRAM</text><text class="t-dim" x="268" y="140.0">depth 1</text><rect class="box" x="536" y="22" width="176" height="64"/><text class="t-hi" x="548" y="52.0">TOKEN PROGRAM</text><text class="t-dim" x="548" y="70.0">depth 2 · Ana → pool</text><rect class="box" x="536" y="162" width="176" height="64"/><text class="t-hi" x="548" y="192.0">TOKEN PROGRAM</text><text class="t-dim" x="548" y="210.0">depth 2 · pool → Ana</text><path class="ln-fg" d="M178,124 H255" marker-end="url(#f73-fg)"/><path class="ln-fg" d="M436,112 H470 V54 H535" marker-end="url(#f73-fg)"/><path class="ln" d="M470,113 V194 H535" marker-end="url(#f73-am)"/><text class="t-dim" x="498" y="43" text-anchor="middle">Ana signs</text><text class="t-am" x="498" y="210" text-anchor="middle">PDA signs</text><text x="360" y="254" text-anchor="middle">each call is an inner instruction · at most 4 levels of nesting on mainnet today</text></svg>
+          <svg viewBox="0 0 720 264" role="img" aria-labelledby="f73-t"><title id="f73-t">A transaction calls a swap program, which calls the Token Program twice: once with Ana’s signature to move her tokens into the pool, and once signing for the pool PDA to send tokens back.</title><defs><marker id="f73-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f73-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f73-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><rect class="box" x="8" y="92" width="170" height="64"/><text class="t-hi" x="20" y="122.0">TRANSACTION</text><text class="t-dim" x="20" y="140.0">signed by Ana</text><rect class="box" x="256" y="92" width="180" height="64"/><text class="t-hi" x="268" y="122.0">SWAP PROGRAM</text><text class="t-dim" x="268" y="140.0">depth 1</text><rect class="box" x="536" y="22" width="176" height="64"/><text class="t-hi" x="548" y="52.0">TOKEN PROGRAM</text><text class="t-dim" x="548" y="70.0">depth 2 · Ana → pool</text><rect class="box" x="536" y="162" width="176" height="64"/><text class="t-hi" x="548" y="192.0">TOKEN PROGRAM</text><text class="t-dim" x="548" y="210.0">depth 2 · pool → Ana</text><path class="ln-fg" d="M178,124 H255" marker-end="url(#f73-fg)"/><path class="ln-fg" d="M436,112 H470 V54 H535" marker-end="url(#f73-fg)"/><path class="ln" d="M470,110 V194 H535" marker-end="url(#f73-am)"/><text class="t-dim" x="498" y="46" text-anchor="middle">Ana signs</text><text class="t-am" x="498" y="211" text-anchor="middle">PDA signs</text><text x="360" y="254" text-anchor="middle">each call is an inner instruction · at most 4 levels of nesting on mainnet today</text></svg>
         </div>
         <figcaption>fig. 3: programs calling programs during a swap.</figcaption>
       </figure>
@@ -199,6 +198,7 @@ pub fn increment(ctx: Context&lt;Increment&gt;) -&gt; Result&lt;()&gt; {
 <script src="../js/helpers/sidebar.js" defer></script>
 <script src="../js/helpers/scroll-spy.js" defer></script>
 <script src="../js/helpers/copy-code.js" defer></script>
+<script src="../js/helpers/highlight.js" defer></script>
 <script src="../js/helpers/glossary-filter.js" defer></script>
 <script src="../js/main.js" defer></script>
 </body>

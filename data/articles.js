@@ -1,6 +1,6 @@
 /* ============================================================
    data/articles.js
-   List of articles. The sidebar, the home listing and the
+   List of articles. The sidebar, the home start button and the
    prev/next links are built from this list.
 
    To add an article: create the file in /articles and add
@@ -89,11 +89,29 @@ window.SITE = {
     {
       id: '08',
       title: 'Your first program with Anchor',
-      nav: 'first program (anchor)',
+      nav: 'first program',
       file: 'articles/08-first-program-anchor.html',
       status: 'published',
       level: 'beginner',
       minutes: 30
+    },
+    {
+      id: '09',
+      title: 'Writing safer programs',
+      nav: 'safer programs',
+      file: 'articles/09-writing-safer-programs.html',
+      status: 'published',
+      level: 'beginner',
+      minutes: 10
+    },
+    {
+      id: '10',
+      title: 'Two paths: consensus or applications',
+      nav: 'two paths',
+      file: 'articles/10-two-paths.html',
+      status: 'published',
+      level: 'beginner',
+      minutes: 8
     }
   ]
 };

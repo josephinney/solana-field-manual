@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two Paths: Consensus or Applications · Solana Field Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/components.css">
+</head>
+<body data-root="../" data-page="10">
+<div class="layout">
+  <aside class="side" id="sidebar" aria-label="Site index"></aside>
+
+  <main class="content">
+    <article class="article">
+      <p class="meta">~/manual/10-two-paths.txt</p>
+      <h1>Two paths: consensus or applications</h1>
+      <p class="lead">Once you understand the basics of Solana, there are two broad directions to go deeper. One is the
+        layer that keeps the network running, and the other is the layer that people build on top of it. This article
+        describes what each path involves, which skills it asks for and how to take a first step in each one.</p>
+      <ul class="meta-list">
+        <li><span class="k">level</span>beginner</li>
+        <li><span class="k">prerequisites</span>accounts, transactions and validators</li>
+        <li><span class="k">time</span>~8 min</li>
+        <li><span class="k">tools</span>Solana CLI, Node.js</li>
+      </ul>
+      <hr>
+
+      <h2 id="s1" data-short="two layers"><span class="n">01</span>Two layers of the same network</h2>
+      <p>Everything that happens on Solana involves two layers. The upper one is what people see and use: wallets, web
+        pages, the programs that hold tokens or run an exchange, and the services that collect data about them. The lower
+        one is what keeps the network alive: the validators that receive transactions, put them in blocks and agree on the
+        result, and the software they run to do it.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 290" role="img" aria-labelledby="f101-t"><title id="f101-t">Two layers. Applications on top: wallets, web pages, programs and indexers. Consensus and infrastructure below: validators, clients, RPC nodes and consensus. Transactions go down and results come back up.</title><defs><marker id="f101-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f101-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f101-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><rect class="box" x="8" y="8" width="704" height="112"/><text class="t-hi" x="20" y="34">APPLICATIONS</text><text class="t-dim" x="700" y="32" text-anchor="end">what people see and use</text><rect class="box dim" x="20" y="52" width="160" height="50"/><text x="100" y="82" text-anchor="middle">wallets</text><rect class="box dim" x="192" y="52" width="160" height="50"/><text x="272" y="82" text-anchor="middle">web pages</text><rect class="box dim" x="364" y="52" width="160" height="50"/><text x="444" y="82" text-anchor="middle">programs</text><rect class="box dim" x="536" y="52" width="160" height="50"/><text x="616" y="82" text-anchor="middle">indexers</text><path class="ln" d="M300,124 V164" marker-end="url(#f101-am)"/><text class="t-am" x="290" y="148" text-anchor="end">transactions</text><path class="ln-fg" d="M420,164 V124" marker-end="url(#f101-fg)"/><text class="t-dim" x="430" y="148">results</text><rect class="box" x="8" y="168" width="704" height="112"/><text class="t-hi" x="20" y="194">CONSENSUS AND INFRASTRUCTURE</text><text class="t-dim" x="700" y="192" text-anchor="end">what keeps the network running</text><rect class="box dim" x="20" y="212" width="160" height="50"/><text x="100" y="242" text-anchor="middle">validators</text><rect class="box dim" x="192" y="212" width="160" height="50"/><text x="272" y="242" text-anchor="middle">clients</text><rect class="box dim" x="364" y="212" width="160" height="50"/><text x="444" y="242" text-anchor="middle">RPC nodes</text><rect class="box dim" x="536" y="212" width="160" height="50"/><text x="616" y="242" text-anchor="middle">consensus</text></svg>
+        </div>
+        <figcaption>fig. 1: the two layers of the network.</figcaption>
+      </figure>
+
+      <p>A user only touches the upper layer, but every action there depends on the lower one. A program can be perfectly
+        written and still be useless if the network cannot process its transactions, and a fast network has no value
+        without applications that people want to use. Both layers need people who understand them well, and the work in
+        each one is quite different.</p>
+
+      <h2 id="s2" data-short="one transaction"><span class="n">02</span>One transaction, both layers</h2>
+      <p>Following a single transaction shows where one layer ends and the other begins. A web page builds the
+        transaction and the wallet signs it. From that moment it leaves the application layer: an RPC node forwards it to
+        the current leader, the leader runs the program and adds the result to a block, and the other validators vote on
+        it until it is final. The page then receives the confirmation and shows the new state.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 250" role="img" aria-labelledby="f102-t"><title id="f102-t">A transaction goes from the web page to the wallet, which signs it, then to an RPC node, the leader that runs the program and the validators that vote on it. The confirmation returns to the page.</title><defs><marker id="f102-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f102-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f102-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><text class="t-dim" x="8" y="16">application layer</text><rect class="box" x="8" y="50" width="152" height="58"/><text class="t-hi" x="20" y="77.0">WEB PAGE</text><text class="t-dim" x="20" y="95.0">builds the tx</text><rect class="box" x="192" y="50" width="152" height="58"/><text class="t-hi" x="204" y="77.0">WALLET</text><text class="t-dim" x="204" y="95.0">signs it</text><path class="ln-fg" d="M160,79 H189" marker-end="url(#f102-fg)"/><line class="sep dash" x1="8" y1="140" x2="712" y2="140"/><text class="t-dim" x="8" y="162">consensus layer</text><rect class="box" x="192" y="176" width="152" height="58"/><text class="t-hi" x="204" y="203.0">RPC NODE</text><text class="t-dim" x="204" y="221.0">forwards it</text><rect class="box" x="376" y="176" width="152" height="58"/><text class="t-hi" x="388" y="203.0">LEADER</text><text class="t-dim" x="388" y="221.0">runs the program</text><rect class="box" x="560" y="176" width="152" height="58"/><text class="t-hi" x="572" y="203.0">VALIDATORS</text><text class="t-dim" x="572" y="221.0">vote until final</text><path class="ln" d="M268,108 V173" marker-end="url(#f102-am)"/><path class="ln" d="M344,205 H373" marker-end="url(#f102-am)"/><path class="ln" d="M528,205 H557" marker-end="url(#f102-am)"/><path class="ln-fg dash" d="M636,173 V30 H84 V47" marker-end="url(#f102-fg)"/><text class="t-dim" x="440" y="24" text-anchor="middle">confirmation</text></svg>
+        </div>
+        <figcaption>fig. 2: one transaction crossing both layers.</figcaption>
+      </figure>
+
+      <p>The application developer decides what goes inside the transaction. The people who work on consensus decide how
+        fast and how safely it travels through the network.</p>
+
+      <h2 id="s3" data-short="consensus path"><span class="n">03</span>The consensus path</h2>
+      <p>This path is about the network itself. The work includes operating validators and RPC nodes, studying how
+        validators reach agreement, measuring performance and contributing to the <strong>clients</strong>, the programs
+        a validator runs. Solana has more than one client, written by different teams, so that a bug in one of them does
+        not stop the whole network:</p>
+      <ul>
+        <li><strong>Agave</strong>, maintained by Anza and written in Rust. It is the original client, and many validators
+          run modified versions of it, such as Jito-Solana.</li>
+        <li><strong>Firedancer</strong>, built by Jump Crypto from scratch in C. Its hybrid version,
+          <strong>Frankendancer</strong>, combines Firedancer's networking and block production with Agave's execution and
+          consensus, and the fully independent Firedancer is being adopted gradually.</li>
+        <li><strong>Sig</strong>, built by Syndica in Zig and focused on reading data quickly. It is still in
+          development.</li>
+      </ul>
+      <p>The skills this path asks for are systems programming in Rust, C or Zig, Linux, networking and a good
+        understanding of performance. Running a validator on mainnet also requires powerful hardware and SOL to pay for its
+        votes, so most people start by watching the network from the command line and later practice on testnet, the
+        network where validators test new versions.</p>
+      <p>A first step needs nothing but the Solana CLI. These commands ask the network about its current epoch and its
+        validators:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>solana epoch-info
+solana validators</pre></div>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 1</span><span>real output · local network</span></div>
+<pre><span class="pr">$</span> <span class="cmd">solana epoch-info</span>
+
+Block height: 129
+Slot: 129
+Epoch: <span class="hl">0</span>
+Transaction Count: 128
+Epoch Slot Range: [0..432000)            <span class="ann">← 432,000 slots per epoch</span>
+Epoch Completed Percent: 0.030%
+Epoch Completed Slots: 129/432000 (431871 remaining)
+Epoch Completed Time: 55s/2days 3s (1day 23h 59m 8s remaining)
+                      <span class="ann">↑ slots on a local network are slower than on mainnet</span>
+
+<span class="pr">$</span> <span class="cmd">solana validators</span>
+   Identity                                      Vote Account                              Commission  Last Vote        Root Slot     Skip Rate  Credits  Version Client Id                Active Stake
+  AP1F2Ja4cKB6v1jCV4ZDmKtxHjMPnpeqkRGy74XiNLim  DgPvArnw3DfPzDQ8Quf9u1ZwMhKwkAX32qKLtp1SCwhP    0.00%         97 (  0)         66 (  0)   0.00%     1056    4.2.2 <span class="hl">Agave</span>            999999.997717120 SOL (100.00%)
+
+Average Stake-Weighted Skip Rate: 0.00%
+Average Unweighted Skip Rate:     0.00%
+
+Active Stake: 999999.99771712 SOL
+
+Stake By Version:
+4.2.2   -    1 current validators (100.00%)
+
+Stake By Client ID:
+<span class="hl">Agave</span>          -    1 current validators (100.00%)     <span class="ann">← the client each validator runs</span></pre>
+        <figcaption>a local test network with one validator. Scroll sideways to see every column.</figcaption>
+      </figure>
+
+      <p>The screen comes from a local test network with a single validator. Run the same commands with
+        <code>--url mainnet-beta</code> and the list grows to hundreds of validators, each with its stake, its version and
+        the client it runs.</p>
+
+      <h2 id="s4" data-short="applications path"><span class="n">04</span>The applications path</h2>
+      <p>This path is about what people do with the network. The work includes writing programs, building the clients and
+        web pages that talk to them, connecting wallets, testing and collecting on-chain data so an app can show it
+        quickly. Each part has its own tools:</p>
+      <ul>
+        <li><strong>Programs</strong> are written in Rust, usually with Anchor, or with lighter libraries such as Pinocchio
+          when every compute unit counts.</li>
+        <li><strong>Clients</strong> in TypeScript use <code>@solana/kit</code>, the official library for talking to the
+          network, and tools like Codama can generate a client from a program's IDL.</li>
+        <li><strong>Wallets</strong> announce themselves to web pages through the Wallet Standard, so one page works with
+          Phantom, Solflare, Backpack and others without code for each one.</li>
+        <li><strong>Tests</strong> run on simulated or local networks such as LiteSVM and Surfpool before anything reaches
+          devnet.</li>
+      </ul>
+      <p>The skills this path asks for are Rust for programs, TypeScript for clients and web pages, and a careful
+        attitude to security, because a mistake in a program can lose other people's money.</p>
+      <p>A first step needs Node.js. Create a folder, install the library and save this script as
+        <code>balance.mjs</code>:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>mkdir first-client &amp;&amp; cd first-client
+npm init -y
+npm install @solana/kit</pre></div>
+
+      <div class="code">
+        <div class="label"><span>javascript · balance.mjs</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>import { createSolanaRpc, address } from &quot;@solana/kit&quot;;
+
+// Connect to devnet through its public RPC endpoint
+const rpc = createSolanaRpc(&quot;https://api.devnet.solana.com&quot;);
+
+// The wallet to read, passed on the command line
+const wallet = address(process.argv[2]);
+
+const { value: lamports } = await rpc.getBalance(wallet).send();
+console.log(&quot;wallet: &quot;, wallet);
+console.log(&quot;balance:&quot;, Number(lamports) / 1_000_000_000, &quot;SOL&quot;);</pre>
+      </div>
+
+      <p>It connects to devnet, asks for the balance of the address you pass and converts it from lamports to SOL:</p>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 2</span><span>example output</span></div>
+<pre><span class="pr">$</span> <span class="cmd">node balance.mjs BeLFgVHEY3CCAe4YxgTzDAcHMornqsRXsQdJSRQj1pf8</span>
+wallet:  BeLFgVHEY3CCAe4YxgTzDAcHMornqsRXsQdJSRQj1pf8
+balance: <span class="hl">2</span> SOL               <span class="ann">← 2,000,000,000 lamports</span></pre>
+        <figcaption>use your own address. Your balance will be different.</figcaption>
+      </figure>
+
+      <p>From here the next steps are sending a transaction, reading the accounts of a program and connecting a wallet
+        from a web page.</p>
+
+      <h2 id="s5" data-short="how to choose"><span class="n">05</span>How to choose</h2>
+      <div class="tbl"><table>
+        <thead><tr><th></th><th>Consensus</th><th>Applications</th></tr></thead>
+        <tbody>
+          <tr><td>You work on</td><td>the network: validators, clients, consensus</td><td>what runs on it: programs, clients, web pages</td></tr>
+          <tr><td>Languages</td><td>Rust, C, Zig</td><td>Rust, TypeScript</td></tr>
+          <tr><td>Typical problems</td><td>speed, reliability, agreement between machines</td><td>user experience, account design, security of funds</td></tr>
+          <tr><td>First step</td><td>explore the network with the CLI, then testnet</td><td>read data with <code>@solana/kit</code>, then write a program</td></tr>
+          <tr><td>You practice on</td><td>a local validator and testnet</td><td>a local network and devnet</td></tr>
+        </tbody>
+      </table></div>
+      <p>If you enjoy understanding how machines agree with each other and making systems faster, the consensus path will
+        feel natural. If you prefer building something that people use, start with applications. The choice is not
+        permanent, and the two paths meet often: application developers who understand the network write better programs,
+        and core engineers who build applications understand what the network must deliver.</p>
+
+      <h2 id="s6" data-short="keep learning"><span class="n">06</span>Where to keep learning</h2>
+      <p>Official documentation is the most reliable place to continue, because it is updated when the network
+        changes.</p>
+      <h3>Consensus</h3>
+      <ul>
+        <li><a href="https://docs.anza.xyz/" target="_blank" rel="noopener">Anza docs</a>: the Agave client, running a validator and the CLI.</li>
+        <li><a href="https://docs.firedancer.io/" target="_blank" rel="noopener">Firedancer docs</a>: Frankendancer and Firedancer for operators.</li>
+        <li><a href="https://docs.syndica.io/sig" target="_blank" rel="noopener">Sig docs</a>: the Zig client and its goals.</li>
+      </ul>
+      <h3>Applications</h3>
+      <ul>
+        <li><a href="https://solana.com/docs" target="_blank" rel="noopener">Solana docs</a>: core concepts, programs and clients.</li>
+        <li><a href="https://solana.com/docs/frontend" target="_blank" rel="noopener">Solana docs, frontend</a>: <code>@solana/kit</code> and wallet connection.</li>
+        <li><a href="https://www.anchor-lang.com/docs" target="_blank" rel="noopener">Anchor docs</a>: writing and testing programs.</li>
+      </ul>
+      <p>This field manual ends here. You now know how the network is organized, how accounts, tokens, wallets and
+        transactions work, and what it takes to write a program. Whichever path you take, the habit that will help most is
+        the one used throughout these pages: run things yourself, read what the network answers and check every fact
+        against the source.</p>
+
+      <h3>Sources</h3>
+      <ul class="meta">
+        <li><a href="https://github.com/firedancer-io/firedancer" target="_blank" rel="noopener">Firedancer: repository and overview</a></li>
+        <li><a href="https://syndica.io/sig" target="_blank" rel="noopener">Syndica: Sig</a></li>
+        <li><a href="https://solana.com/docs/frontend/web3-compat" target="_blank" rel="noopener">Solana: migrating to Kit</a></li>
+      </ul>
+    </article>
+
+    <hr>
+    <nav class="pager" id="pager" aria-label="Previous and next"></nav>
+    <hr>
+    <footer>solana field manual · last updated 18 Nov 2026</footer>
+  </main>
+</div>
+
+<script src="../data/articles.js" defer></script>
+<script src="../js/helpers/clock.js" defer></script>
+<script src="../js/helpers/sidebar.js" defer></script>
+<script src="../js/helpers/scroll-spy.js" defer></script>
+<script src="../js/helpers/copy-code.js" defer></script>
+<script src="../js/helpers/highlight.js" defer></script>
+<script src="../js/helpers/glossary-filter.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>

@@ -19,25 +19,15 @@
   const article = document.querySelector('.article');
   if (article) FM.scrollSpy.init(article, sidebar);
 
-  // copy buttons
+  // syntax colors, then copy buttons
+  if (FM.highlight) FM.highlight.init(document);
   FM.copyCode.init(document);
 
-  // home: file listing
-  const listing = document.getElementById('file-list');
-  if (listing && site) {
-    const rows = site.articles.map((a) => {
-      const name = a.file.split('/').pop().replace('.html', '.txt');
-      if (a.status === 'published') {
-        return `<tr><td class="perm">-rw-r--r--</td><td>${a.id}</td><td><a href="${root + a.file}">${name}</a></td>` +
-               `<td class="meta">~${a.minutes} min · ${a.level}</td></tr>`;
-      }
-      return `<tr class="locked"><td class="perm">----------</td><td>${a.id}</td><td>${name}</td>` +
-             `<td>in preparation · <a href="${root + a.file}">outline</a></td></tr>`;
-    });
-    const terms = window.GLOSSARY ? `${window.GLOSSARY.length} terms` : 'reference';
-    rows.push(`<tr><td class="perm">-rw-r--r--</td><td>--</td><td><a href="${root}glossary.html">glossary.txt</a></td>` +
-              `<td class="meta">${terms}</td></tr>`);
-    listing.innerHTML = rows.join('');
+  // home: the start button always points to the first article in data/articles.js
+  const startLink = document.getElementById('start-link');
+  if (startLink && site) {
+    const first = site.articles.find((a) => a.status === 'published');
+    if (first) startLink.href = root + first.file;
   }
 
   // articles: previous / next links
