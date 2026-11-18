@@ -1,0 +1,133 @@
+/* ============================================================
+   components.css
+   Reusable blocks used inside articles and pages.
+   ============================================================ */
+
+/* ---------- code blocks ----------
+   <div class="code">
+     <div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+     <pre>...</pre>
+   </div>
+   Add data-raw to the button to copy comments too (json, rust...). */
+.code{margin:8px 0 18px}
+.code pre{
+  background:var(--code-bg);padding:14px 16px;overflow-x:auto;
+  font-family:var(--font-body);font-size:13.5px;line-height:1.6;color:var(--fg);
+}
+.code pre .c{color:var(--dim)}
+.code .label{font-size:12px;color:var(--dim);margin-bottom:2px;display:flex;justify-content:space-between;gap:12px}
+.copy{font-family:var(--font-body);font-size:12px;background:none;border:none;color:var(--dim);cursor:pointer;padding:0}
+.copy::before{content:"["}
+.copy::after{content:"]"}
+.copy:hover{color:var(--fg-hi)}
+
+/* ---------- figures (inline svg) ----------
+   <figure class="fig"><div class="wrap"><svg>...</svg></div><figcaption>fig. 1: ...</figcaption></figure> */
+.fig{margin:10px 0 20px}
+.fig .wrap{overflow-x:auto;padding:14px 0 6px;border-top:1px dashed var(--rule);border-bottom:1px dashed var(--rule)}
+.fig svg{display:block;width:100%;height:auto;min-width:560px}
+.fig figcaption{font-size:12.5px;color:var(--dim);margin-top:6px}
+.fig text{font-family:var(--font-body);font-size:13px;fill:var(--fg)}
+.fig .t-hi{font-family:var(--font-display);font-size:21px;fill:var(--fg-hi)}
+.fig .t-dim{fill:var(--dim);font-size:12px}
+.fig .t-am{fill:var(--amber)}
+.fig .t-red{fill:var(--red)}
+.fig .box{fill:none;stroke:var(--fg);stroke-width:1}
+.fig .sep{stroke:var(--rule);stroke-width:1}
+.fig .ln{fill:none;stroke:var(--amber);stroke-width:1.2}
+.fig .ln-red{fill:none;stroke:var(--red);stroke-width:1.2;stroke-dasharray:4 3}
+.fig .ln-red.solid{stroke-dasharray:none}
+.fig .ax{stroke:var(--dim);stroke-width:1;fill:none}
+.fig .cell{fill:none;stroke:var(--dim);stroke-width:1}
+.fig .cell.f{fill:rgba(200,197,185,.09)}
+.fig .mk{fill:var(--amber)}
+
+/* ---------- tables ---------- */
+.tbl{overflow-x:auto;margin:8px 0 18px}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th{text-align:left;font-weight:400;color:var(--dim);padding:6px 14px 6px 0;border-bottom:1px dashed var(--rule)}
+td{padding:7px 14px 7px 0;border-bottom:1px dashed var(--rule);vertical-align:top}
+tr:last-child td{border-bottom:none}
+
+/* ---------- notes ----------
+   .note (info) · .note.warn (amber) · .note.crit (red) */
+.note{margin:8px 0 18px;padding-left:16px;border-left:1px dashed var(--dim)}
+.note .t{display:block;color:var(--fg-hi)}
+.note.warn{border-left-color:var(--amber)}
+.note.warn .t{color:var(--amber)}
+.note.crit{border-left-color:var(--red)}
+.note.crit .t{color:var(--red)}
+.note p:last-child{margin-bottom:0}
+
+/* ---------- home: file listing ---------- */
+.ls{font-size:14px;margin:8px 0 18px;overflow-x:auto}
+.ls td{border:none;padding:3px 18px 3px 0;white-space:nowrap}
+.ls .perm,.ls .locked{color:var(--dim)}
+
+/* ---------- misc ---------- */
+.toc{list-style:none;margin:8px 0 16px}
+.toc .n{color:var(--dim);margin-right:8px}
+.pager{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:14px}
+.redact{display:block;height:1em;background:var(--rule);margin:10px 0}
+.redact.s{width:55%}
+.redact.m{width:80%}
+
+/* ---------- glossary ---------- */
+.filter{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0 14px;font-size:14px}
+.filter label{color:var(--dim)}
+.filter input{
+  flex:1 1 220px;background:transparent;border:none;border-bottom:1px dashed var(--dim);
+  color:var(--fg-hi);font-family:var(--font-body);font-size:15px;padding:4px 0;outline:none;
+}
+.filter input:focus{border-bottom-color:var(--fg-hi)}
+dl.gloss dt{color:var(--fg-hi);margin-top:14px}
+dl.gloss dd{margin-left:24px}
+dl.gloss .tag{font-size:13px;color:var(--dim)}
+
+/* ---------- figure extras (flows and networks) ---------- */
+.fig .box.dim{stroke:var(--rule)}
+.fig .t-hi.dim{fill:var(--dim)}
+.fig .ln-fg{fill:none;stroke:var(--fg);stroke-width:1.2}
+.fig .ln-dim{fill:none;stroke:var(--rule);stroke-width:1.2}
+.fig .dash{stroke-dasharray:4 3}
+.fig .zone{stroke:var(--rule);stroke-width:1;stroke-dasharray:3 4}
+.fig .net{fill:none;stroke:var(--rule);stroke-width:1;stroke-dasharray:4 3}
+.fig .vnode{fill:var(--bg);stroke:var(--fg);stroke-width:1}
+.fig .vnode.off{stroke:var(--red)}
+.fig .mk-fg{fill:var(--fg)}
+.fig .mk-dim{fill:var(--rule)}
+
+/* ---------- article meta (level, prerequisites, reading time...) ----------
+   <ul class="meta-list"><li><span class="k">level</span>beginner</li>...</ul> */
+.meta-list{list-style:none;margin:0 0 14px;font-size:13px;color:var(--fg)}
+.meta-list li{margin:0}
+.meta-list .k{display:inline-block;min-width:16ch;color:var(--dim)}
+.fig .box.red{stroke:var(--red)}
+
+/* ---------- terminal screens (real command output) ----------
+   <figure class="term">
+     <div class="term-bar"><span>screen 1</span><span>terminal · devnet</span></div>
+     <pre><span class="pr">$</span> command
+output line with <span class="hl">value to copy</span>
+<span class="ann">         ^ annotation</span></pre>
+     <figcaption>what to look for</figcaption>
+   </figure> */
+.term{margin:10px 0 20px}
+.term-bar{
+  display:flex;justify-content:space-between;gap:12px;
+  font-size:12px;color:var(--dim);
+  border:1px solid var(--rule);border-bottom:none;padding:3px 12px;
+}
+.term pre{
+  border:1px solid var(--rule);background:#111417;
+  padding:12px 14px;overflow-x:auto;
+  font-family:var(--font-body);font-size:13px;line-height:1.6;color:var(--fg);
+}
+.term .pr{color:var(--dim)}
+.term .cmd{color:var(--fg-hi)}
+.term .hl{color:var(--amber)}
+.term .ann{color:var(--amber)}
+.term .err{color:var(--red)}
+.term .ann.err{color:var(--red)}
+.term .ok{color:var(--fg-hi)}
+.term figcaption{font-size:12.5px;color:var(--dim);margin-top:6px}

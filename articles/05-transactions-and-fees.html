@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transactions and Fees · Solana Field Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/components.css">
+</head>
+<body data-root="../" data-page="05">
+<div class="layout">
+  <aside class="side" id="sidebar" aria-label="Site index"></aside>
+
+  <main class="content">
+    <article class="article">
+      <p class="meta">~/manual/05-transactions-and-fees.txt</p>
+      <h1>Transactions and fees: reading the explorer</h1>
+      <p class="lead">Every transaction on Solana is public, and an explorer shows all of it. In this file we open two real
+        transactions from the same block, one that succeeded and one that failed, and learn to read them from top to
+        bottom.</p>
+      <ul class="meta-list">
+        <li><span class="k">level</span>beginner</li>
+        <li><span class="k">prerequisites</span>none</li>
+        <li><span class="k">reading time</span>~10 min</li>
+        <li><span class="k">facts verified</span>18 Nov 2026</li>
+      </ul>
+      <hr>
+
+      <h2 id="s1" data-short="what's inside"><span class="n">01</span>What a transaction contains</h2>
+      <p>A transaction is a signed message with four parts: the <strong>signatures</strong> of everyone who authorizes it,
+        the list of <strong>accounts</strong> it will read or modify, the <strong>instructions</strong> that say which
+        programs to run, and a <strong>recent blockhash</strong> that proves it was created recently. The first signer is
+        the <strong>fee payer</strong>, the account that pays the network for processing it.</p>
+      <p>Once a validator includes the transaction in a block, an explorer can show you every one of those parts, plus
+        what happened when it ran: the fee, the balances that changed and the messages each program wrote.</p>
+
+      <h2 id="s2" data-short="two transactions"><span class="n">02</span>Two real transactions</h2>
+      <p>Both transactions in this file landed in the same block, slot 470,862,445, on 18 November 2026 at 08:08:21 UTC.
+        You can open them yourself:</p>
+      <ul>
+        <li><strong>Successful:</strong> <a href="https://explorer.solana.com/tx/zv1tMRBfR1QR4DWoR7PhH6iuJMhrmfDFDphr3XR5nA5eHqrqRvFdbXHM7w5iFrHzsGDibt23iY7EW4xtQEcJT1k" target="_blank" rel="noopener">zv1tMRBf…QEcJT1k</a>.
+          Someone spent about 0.69 SOL to buy a token, routed through several exchanges.</li>
+        <li><strong>Failed:</strong> <a href="https://explorer.solana.com/tx/Wv56GPKxgHvhKt7Zz2HiVqYxFmKvtFk2aNWVdLUYyu99syejrKsqLDJb5E386C1zpHjL8BSfe226zc1sSqrvbxx" target="_blank" rel="noopener">Wv56GPKx…Sqrvbxx</a>.
+          A bot tried a chain of trades and cancelled them all.</li>
+      </ul>
+      <p>Neither one is a simple transfer, and that is on purpose. Most transactions on mainnet are sent by apps and bots,
+        so their pages list dozens of accounts and instructions. The trick is knowing that you only need to look at a few
+        places, in this order: the summary, the fee, the balance changes, the instructions and, if something went wrong,
+        the logs.</p>
+      <div class="note">
+        <span class="t">[i] about the screens</span>
+        <p>The screens below copy the real values from each page, rebuilt in this site's style and shortened where the page
+          is very long. The explorer's layout may change over time; the fields themselves do not.</p>
+      </div>
+
+      <h2 id="s3" data-short="summary box"><span class="n">03</span>The summary</h2>
+      <p>The top of the page answers the basic questions: did it work, who paid, when it happened and how much it cost.</p>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 1</span><span>explorer · summary</span></div>
+<pre>Status                <span class="hl">Success</span>                 <span class="ann">← it worked</span>
+Confirmation          Finalized (MAX Confirmations)
+Signature             zv1tMRBf…QEcJT1k        <span class="ann">← the transaction’s ID</span>
+Fee payer             oFQk…UcNs               <span class="ann">← who paid, and who signed first</span>
+Slot                  470,862,445             <span class="ann">← the block it went into</span>
+Recent Blockhash      9qZH…Dih8c              <span class="ann">← proves it is recent (section 08)</span>
+Fee                   <span class="hl">◎0.000007709</span>            <span class="ann">← total network fee</span>
+CUs Consumed / Limit  231,289 / 270,897       <span class="ann">← work done / work reserved</span>
+Priority fee (total)  <span class="hl">◎0.000002709</span>            <span class="ann">← part of the fee above</span>
+Transaction size      1,865 bytes <span class="pr">Max is 4,096 bytes</span>
+Timestamp             Nov 18, 2026 at 08:08:21 UTC</pre>
+        <figcaption>the summary of the successful transaction. Long values shortened with …</figcaption>
+      </figure>
+
+      <p>The <strong>signature</strong> doubles as the transaction's ID: it is what you search for and what appears in the
+        address bar. <strong>Finalized</strong> means the block can no longer be reversed. The <strong>slot</strong> places
+        the transaction in time, and the two fee lines are worth a section of their own.</p>
+
+      <h2 id="s4" data-short="the fee"><span class="n">04</span>The fee</h2>
+      <p>The fee has two parts. The <strong>base fee</strong> is fixed at 5,000 lamports for each signature, and this
+        transaction had one. The <strong>priority fee</strong> is optional: the app offers to pay a price for each unit of
+        work so that the leader picks the transaction sooner when the network is busy.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 224" role="img" aria-labelledby="f51-t"><title id="f51-t">The fee of 7,709 lamports is a base fee of 5,000 plus a priority fee of 2,709. The transaction reserved 270,897 compute units and used 231,289.</title><defs><marker id="f51-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f51-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f51-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><text class="t-dim" x="24" y="20">fee: 7,709 lamports</text><rect class="box" x="24" y="30" width="436" height="34"/><rect class="cell f" x="460" y="30" width="236" height="34" style="stroke:var(--amber)"/><text x="36" y="52">base fee · 5,000</text><text class="t-am" x="472" y="52">priority fee · 2,709</text><text class="t-dim" x="24" y="88">5,000 lamports × 1 signature</text><text class="t-dim" x="24" y="106">50% burned · 50% to the validator</text><text class="t-dim" x="472" y="88">270,897 CU × 0.01 lamports</text><text class="t-dim" x="472" y="106">100% to the validator</text><text class="t-dim" x="24" y="146">compute units: 270,897 reserved</text><rect class="cell f" x="24" y="156" width="574" height="26"/><rect class="cell" x="24" y="156" width="672" height="26"/><text x="36" y="174">used · 231,289</text><text class="t-dim" x="606" y="174">unused</text><text x="360" y="214" text-anchor="middle">the priority fee is charged on the units reserved, not on the units used</text></svg>
+        </div>
+        <figcaption>fig. 1: what the 0.000007709 SOL fee is made of.</figcaption>
+      </figure>
+
+      <p>That work is measured in <strong>compute units</strong> (CU). Before sending, the app reserved a limit of 270,897
+        units and offered 0.01 lamports for each one, which gives the 2,709 lamports of priority fee. The transaction then
+        used 231,289 units, but the priority fee is calculated on the units reserved, so a limit much larger than needed is
+        money wasted.</p>
+      <p>The two parts also end up in different places: half of the base fee is burned, which removes it from the SOL
+        supply, and the other half goes to the validator that produced the block, which also keeps the whole priority fee.
+        In total, the transaction paid 0.000007709 SOL to the network.</p>
+
+      <h2 id="s5" data-short="balances"><span class="n">05</span>Balance changes</h2>
+      <p>The account list shows every account the transaction touched, with the change in its SOL balance. Most of them
+        show +0: they are programs, pools and token accounts whose SOL balance did not change. The useful rows are the ones that
+        changed.</p>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 2</span><span>explorer · accounts &amp; SOL balance</span></div>
+<pre>#   Address      Tags                             Change          Balance after
+1   oFQk…UcNs    Fee Payer · Signer · Writable    <span class="hl">−◎0.695180065</span>   ◎0.695144648
+2   KfHb…zMFQ    Writable                         +◎0.00312823     ◎9.637461992
+4   wyvP…WkcF    Writable                         +◎0.00001        ◎4.074488205
+12  6wWV…J5BB    Writable                         +◎0.692034126    ◎2,560.304473943
+<span class="pr">    … 44 more accounts, all with a change of +0</span>
+<span class="ann">    ^ 0.695180065 SOL out: three deposits plus the network fee</span></pre>
+        <figcaption>only 4 of the 48 accounts changed their SOL balance. The rest were read or checked.</figcaption>
+      </figure>
+
+      <p>The fee payer lost 0.695180065 SOL, and the four non-zero rows add up exactly: 0.692034126 went to account 12,
+        0.00312823 to account 2, 0.00001 to account 4, and the remaining 0.000007709 is the network fee, which does not
+        appear as a deposit anywhere. To see what was bought with that SOL, look at the token balances:</p>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 3</span><span>explorer · tokens</span></div>
+<pre>#   Owner        Token account   Token        Change
+9   oFQk…UcNs    GBrg…RjGJ       GgoP…pump    <span class="hl">+3351115.456668</span>
+3   6wWV…J5BB    6wWV…J5BB       wrapped SOL  +0.692034126
+<span class="pr">    … 8 more token accounts</span>
+<span class="ann">    ^ what the fee payer got: 3,351,115 units of a token</span></pre>
+        <figcaption>the token side of the trade: SOL went into a pool, tokens came out to the fee payer.</figcaption>
+      </figure>
+
+      <p>Account 12 is the SOL side of a trading pool, and in return the fee payer received 3,351,115 units of a token in
+        its token account. That explains 0.692 of the 0.695 SOL. The two smaller transfers are something else: the app that
+        built the transaction added them as separate instructions. The explorer cannot tell us why; apps often use transfers
+        like these to collect their own fee or to tip validators for faster inclusion.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 200" role="img" aria-labelledby="f52-t"><title id="f52-t">Bar chart: the transfer added by the app is 3,128,230 lamports, the second transfer 10,000, and the network fee only 7,709.</title><defs><marker id="f52-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f52-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f52-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><text class="t-dim" x="24" y="20">extra costs of the successful transaction, in lamports</text><rect class="cell f" x="24" y="32" width="640" height="30"/><text x="36" y="52">transfer #1 added by the app · 3,128,230</text><rect class="cell f" x="24" y="78" width="2" height="30"/><text x="36" y="98">transfer #5 added by the app · 10,000</text><rect class="cell f" x="24" y="124" width="2" height="30" style="stroke:var(--amber)"/><text class="t-am" x="36" y="144">network fee · 7,709</text><text x="360" y="190" text-anchor="middle">the app’s transfer #1 alone was about 400 times the network fee</text></svg>
+        </div>
+        <figcaption>fig. 2: the network fee next to the transfers the app added. Same scale.</figcaption>
+      </figure>
+
+      <p>This is the most useful habit the explorer can teach you. Solana's network fee was a fraction of a cent, but the
+        app took about 400 times more in its own transfer. When an operation seems expensive, the balance changes tell you
+        exactly who charged what.</p>
+
+      <h2 id="s6" data-short="instructions"><span class="n">06</span>Instructions and logs</h2>
+      <p>The programs section lists the instructions in the order they ran:</p>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 4</span><span>explorer · programs</span></div>
+<pre>#1  System Program: Transfer                     ◎0.00312823 → KfHb…zMFQ
+#2  Associated Token Program: Create Idempotent  <span class="pr">4 inner instructions</span>
+#3  Associated Token Program: Create Idempotent
+#4  Unknown Program (6Vo3…uTAB): Unknown Instruction
+<span class="pr">      18 inner instructions: Jupiter, Lb Clmm, Pump, Token Program…</span>
+#5  System Program: Transfer                     ◎0.00001 → wyvP…WkcF</pre>
+        <figcaption>five instructions on top; one of them called other programs 18 times.</figcaption>
+      </figure>
+
+      <p>Instructions #1 and #5 are the two SOL transfers you already found in the balances. #2 and #3 create token
+        accounts with <strong>Create Idempotent</strong>, an instruction that creates the account if it does not exist and
+        does nothing if it does, so the transaction works either way. #4 is the trade itself.</p>
+      <p>Programs can call other programs, and those calls appear as <strong>inner instructions</strong>, numbered #4.1,
+        #4.2 and so on. Here the trade called a router, which called three exchanges, which in turn called the token
+        programs to move the tokens: 18 inner instructions from a single line. An <strong>Unknown Program</strong> label
+        only means the explorer has no name on file for that program, not that it is dangerous.</p>
+      <p>At the bottom of the page, the <strong>logs</strong> show what each program reported while it ran:</p>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 5</span><span>explorer · logs</span></div>
+<pre>#2  Associated Token Instruction
+> Program logged: "CreateIdempotent"
+> Program invoked: Token Program
+> Program consumed: 179 of 265396 compute units
+> Program returned success
+<span class="pr">  …</span>
+> Program consumed: <span class="hl">13413</span> of 270747 compute units
+> Program returned <span class="hl">success</span></pre>
+        <figcaption>the log of instruction #2, shortened. Each program reports what it did and how much it consumed.</figcaption>
+      </figure>
+
+      <p>Each program writes when it starts, what it did, how many compute units it consumed and whether it succeeded.
+        When everything works, you rarely need the logs. When something fails, they tell you where.</p>
+
+      <h2 id="s7" data-short="failure"><span class="n">07</span>When a transaction fails</h2>
+      <p>The second transaction was sent by a bot that tried to profit from price differences between exchanges, in the
+        same block as the first one.</p>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 6</span><span>explorer · failed transaction</span></div>
+<pre>Status                <span class="err">Error</span>  <span class="err">Program Error: "Instruction #2 Failed"</span>
+Fee                   <span class="hl">◎0.000007828</span>            <span class="ann">← charged anyway</span>
+CUs Consumed / Limit  250,299 / 282,731       <span class="ann">← the work was done</span>
+Priority fee (total)  ◎0.000002828
+
+Accounts   1  5wi3…4wkn  Fee Payer   <span class="hl">−◎0.000007828</span>
+<span class="pr">           … 58 more accounts: +0</span>
+Tokens     15 token accounts, every change: +0
+<span class="ann">           ^ nothing moved except the fee</span>
+
+#1  System Program: Advance Nonce
+#2  Unknown Program (G12b…mjg4): Unknown Instruction
+<span class="pr">      19 inner instructions: Whirlpool, Pump Amm, Lb Clmm…</span>
+> Program consumed: 250149 of 282581 compute units
+> Program returned error: <span class="err">"custom program error: 0x1770"</span></pre>
+        <figcaption>the failed transaction: same block, error in instruction #2, only the fee left the fee payer.</figcaption>
+      </figure>
+
+      <p>The status says that instruction #2 failed, and the last line of the logs shows why: the bot's own program
+        returned the error <code>0x1770</code>. That code is 6000 in decimal, the number that programs written with the
+        Anchor framework give to the first error they define. What it means depends on the program, and since this one is
+        not public, we cannot know its exact reason, although bots like this one typically stop when a trade would not be
+        profitable.</p>
+      <p>What we can see is more interesting: the logs show four trades that completed successfully before the error, yet
+        every token balance changed by +0. That is because a transaction is <strong>atomic</strong>: either all of its
+        instructions succeed, or none of their changes are kept.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 196" role="img" aria-labelledby="f53-t"><title id="f53-t">Four swaps succeed, then the bot program’s check fails with error 0x1770. All four swaps are rolled back and only the fee is charged.</title><defs><marker id="f53-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f53-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f53-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><text class="t-dim" x="8" y="22">inside instruction #2 of the failed transaction</text><rect class="box" x="8" y="40" width="122" height="60"/><text class="t-hi" x="20" y="68.0">SWAP</text><text class="t-dim" x="20" y="86.0">Whirlpool</text><path class="ln-fg" d="M106,58 L111,63 L119,52"/><path class="ln-fg" d="M130,70.0 H153" marker-end="url(#f53-fg)"/><rect class="box" x="154" y="40" width="122" height="60"/><text class="t-hi" x="166" y="68.0">SWAP</text><text class="t-dim" x="166" y="86.0">Whirlpool</text><path class="ln-fg" d="M252,58 L257,63 L265,52"/><path class="ln-fg" d="M276,70.0 H299" marker-end="url(#f53-fg)"/><rect class="box" x="300" y="40" width="122" height="60"/><text class="t-hi" x="312" y="68.0">BUY</text><text class="t-dim" x="312" y="86.0">Pump Amm</text><path class="ln-fg" d="M398,58 L403,63 L411,52"/><path class="ln-fg" d="M422,70.0 H445" marker-end="url(#f53-fg)"/><rect class="box" x="446" y="40" width="122" height="60"/><text class="t-hi" x="458" y="68.0">SWAP</text><text class="t-dim" x="458" y="86.0">Lb Clmm</text><path class="ln-fg" d="M544,58 L549,63 L557,52"/><path class="ln-fg" d="M568,70.0 H591" marker-end="url(#f53-fg)"/><rect class="box red" x="592" y="40" width="122" height="60"/><text class="t-hi" x="604" y="68.0">CHECK</text><text class="t-dim" x="604" y="86.0">bot program</text><path class="ln-red solid" d="M690,52 L702,64 M702,52 L690,64"/><path class="ln-red" d="M653.0,100 V134 H69.0 V106"/><text class="t-red" x="360" y="128" text-anchor="middle">error 0x1770: every step is undone</text><text x="360" y="186" text-anchor="middle">only the fee stays charged: 0.000007828 SOL</text></svg>
+        </div>
+        <figcaption>fig. 3: a transaction is all or nothing.</figcaption>
+      </figure>
+
+      <p>The fee, however, is charged in both cases, because the validator did the work anyway: 250,299 compute units in
+        this case. That is why the fee payer's balance went down by 0.000007828 SOL while nothing else changed.</p>
+
+      <h2 id="s8" data-short="expiry"><span class="n">08</span>When a transaction expires</h2>
+      <p>There is a third outcome that never reaches the explorer. The recent blockhash in every transaction is valid for
+        150 blocks, which with 200 ms slots is about 30 seconds. If the transaction has not been included in a block by
+        then, validators discard it: nothing happens, no fee is charged, and the explorer has no page for it. Wallets
+        usually detect this and offer to send it again with a new blockhash. The limit also protects you, since nobody can
+        resend an old signed transaction weeks later.</p>
+      <p>Some transactions need more time than that, for example when several people have to sign them. For those cases, a
+        transaction can use a <strong>durable nonce</strong>, a stored value that replaces the recent blockhash and does
+        not expire. The failed transaction above uses one: its instruction #1, <code>Advance Nonce</code>, updates that
+        stored value so the same signed transaction cannot be used twice.</p>
+
+      <h2 id="s9" data-short="summary"><span class="n">09</span>Summary</h2>
+      <p>An explorer page looks overwhelming because it shows everything, but reading one is always the same routine:</p>
+      <ol>
+        <li><strong>Status:</strong> did it succeed, and is it finalized?</li>
+        <li><strong>Fee:</strong> base fee plus priority fee, and how many compute units were used against the limit.</li>
+        <li><strong>Your balance changes:</strong> find your address, then check SOL and tokens. Every lamport has to go
+          somewhere.</li>
+        <li><strong>Instructions:</strong> what programs ran, including transfers you did not expect.</li>
+        <li><strong>Logs:</strong> only if it failed, starting from the last line.</li>
+      </ol>
+      <div class="tbl"><table>
+        <thead><tr><th>Concept</th><th>In one sentence</th></tr></thead>
+        <tbody>
+          <tr><td>Fee payer</td><td>The first signer, who pays the network fee.</td></tr>
+          <tr><td>Base fee</td><td>5,000 lamports per signature; half burned, half to the validator.</td></tr>
+          <tr><td>Priority fee</td><td>Optional price per compute unit, charged on the limit; all to the validator.</td></tr>
+          <tr><td>Compute units</td><td>The measure of how much work a transaction asks validators to do.</td></tr>
+          <tr><td>Inner instruction</td><td>A call from one program to another, shown as #4.1, #4.2…</td></tr>
+          <tr><td>Atomic</td><td>All instructions succeed or none of their changes are kept; the fee is paid either way.</td></tr>
+          <tr><td>Recent blockhash</td><td>Makes a transaction expire after 150 blocks, about 30 seconds.</td></tr>
+          <tr><td>Durable nonce</td><td>A stored value that replaces the blockhash so a transaction does not expire.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Sources</h3>
+      <ul class="meta">
+        <li><a href="https://explorer.solana.com/tx/zv1tMRBfR1QR4DWoR7PhH6iuJMhrmfDFDphr3XR5nA5eHqrqRvFdbXHM7w5iFrHzsGDibt23iY7EW4xtQEcJT1k" target="_blank" rel="noopener">Solana Explorer: successful transaction zv1tMRBf…</a></li>
+        <li><a href="https://explorer.solana.com/tx/Wv56GPKxgHvhKt7Zz2HiVqYxFmKvtFk2aNWVdLUYyu99syejrKsqLDJb5E386C1zpHjL8BSfe226zc1sSqrvbxx" target="_blank" rel="noopener">Solana Explorer: failed transaction Wv56GPKx…</a></li>
+        <li><a href="https://solana.com/docs/core/fees/fee-structure" target="_blank" rel="noopener">Solana: fee structure</a></li>
+        <li><a href="https://solana.com/docs/core/transactions" target="_blank" rel="noopener">Solana: transactions</a></li>
+        <li><a href="https://solana.com/upgrades/reduced-slot-times" target="_blank" rel="noopener">Solana: reduced slot times</a></li>
+      </ul>
+    </article>
+
+    <hr>
+    <nav class="pager" id="pager" aria-label="Previous and next"></nav>
+    <hr>
+    <footer>solana field manual · last updated 18 Nov 2026</footer>
+  </main>
+</div>
+
+<script src="../data/articles.js" defer></script>
+<script src="../js/helpers/clock.js" defer></script>
+<script src="../js/helpers/sidebar.js" defer></script>
+<script src="../js/helpers/scroll-spy.js" defer></script>
+<script src="../js/helpers/copy-code.js" defer></script>
+<script src="../js/helpers/glossary-filter.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>

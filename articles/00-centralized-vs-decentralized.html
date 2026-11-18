@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Centralized vs Decentralized · Solana Field Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/components.css">
+</head>
+<body data-root="../" data-page="00">
+<div class="layout">
+  <aside class="side" id="sidebar" aria-label="Site index"></aside>
+
+  <main class="content">
+    <article class="article">
+      <p class="meta">~/manual/00-centralized-vs-decentralized.txt</p>
+      <h1>Centralized vs Decentralized</h1>
+      <p class="lead">Before learning what Solana is, it helps to see the problem it addresses. In this file we will send
+        the same $100 abroad twice, first through banks and then through a blockchain, and compare what happens to the
+        money along the way.</p>
+      <ul class="meta-list">
+        <li><span class="k">level</span>beginner</li>
+        <li><span class="k">prerequisites</span>none</li>
+        <li><span class="k">reading time</span>~7 min</li>
+        <li><span class="k">facts verified</span>18 Nov 2026</li>
+      </ul>
+      <hr>
+
+      <h2 id="s1" data-short="two designs"><span class="n">01</span>Two ways to organize a system</h2>
+      <p>A <strong>centralized</strong> system is run by one operator, or by a small group, that keeps the records and
+        decides who can use the system. A bank, a card network and SWIFT all work this way.</p>
+      <p>A <strong>decentralized</strong> system is run by many independent operators who use the same software and keep
+        the same records, so no single one of them can decide alone. The validators that run Solana are an example.</p>
+      <p>Neither design is better in every case. Each one gives up something to gain something else, and the two examples
+        below show what that means in practice.</p>
+
+      <h2 id="s2" data-short="through banks"><span class="n">02</span>Example 1: sending $100 abroad through banks</h2>
+      <p>You live in country A and have an account at Bank A. Your friend lives in country B and has an account at
+        Bank B, and you want to send them $100.</p>
+      <p>Banks in different countries rarely hold accounts with each other, so the payment travels through one or more
+        <strong>correspondent banks</strong> that do. In the figure, Bank C plays that role. The banks coordinate through
+        <strong>SWIFT</strong>, a network that carries payment instructions between banks. SWIFT itself does not move any
+        money: each bank receives the instruction and updates its own records.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 218" role="img" aria-labelledby="f1-t"><title id="f1-t">You send 100 dollars. Bank A charges 45, Bank C deducts 20 and Bank B deducts 16.60, so your friend receives 63.40 of the 145 dollars that left your account.</title><defs>
+            <marker id="f1-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker>
+            <marker id="f1-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker>
+            <marker id="f1-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker>
+          </defs><line class="zone" x1="286.0" y1="26" x2="286.0" y2="190"/><line class="zone" x1="432.0" y1="26" x2="432.0" y2="190"/><text class="t-dim" x="143.0" y="18" text-anchor="middle">COUNTRY A</text><text class="t-dim" x="359.0" y="18" text-anchor="middle">ABROAD</text><text class="t-dim" x="576.0" y="18" text-anchor="middle">COUNTRY B</text><path class="ln-fg dash" d="M213.0,84 V58 H505.0 V84"/><path class="ln-fg dash" d="M359.0,58 V84"/><rect x="293.0" y="44" width="132" height="20" fill="var(--bg)"/><text class="t-dim" x="359.0" y="58" text-anchor="middle">SWIFT messages</text><rect class="box" x="8" y="84" width="118" height="56"/><text class="t-hi" x="20" y="110.0">YOU</text><text class="t-dim" x="20" y="128.0">country A</text><rect class="box" x="154" y="84" width="118" height="56"/><text class="t-hi" x="166" y="110.0">BANK A</text><text class="t-dim" x="166" y="128.0">country A</text><rect class="box" x="300" y="84" width="118" height="56"/><text class="t-hi" x="312" y="110.0">BANK C</text><text class="t-dim" x="312" y="128.0">correspondent</text><rect class="box" x="446" y="84" width="118" height="56"/><text class="t-hi" x="458" y="110.0">BANK B</text><text class="t-dim" x="458" y="128.0">country B</text><rect class="box" x="592" y="84" width="118" height="56"/><text class="t-hi" x="604" y="110.0">FRIEND</text><text class="t-dim" x="604" y="128.0">country B</text><path class="ln-fg" d="M126,112.0 H153" marker-end="url(#f1-fg)"/><path class="ln-fg" d="M272,112.0 H299" marker-end="url(#f1-fg)"/><path class="ln-fg" d="M418,112.0 H445" marker-end="url(#f1-fg)"/><path class="ln-fg" d="M564,112.0 H591" marker-end="url(#f1-fg)"/><text x="67.0" y="182" text-anchor="middle">pays $145</text><text class="t-am" x="213.0" y="162" text-anchor="middle">fee $45</text><text x="213.0" y="182" text-anchor="middle">sends $100</text><text class="t-am" x="359.0" y="162" text-anchor="middle">fee $20</text><text x="359.0" y="182" text-anchor="middle">sends $80</text><text class="t-am" x="505.0" y="162" text-anchor="middle">fees $16.60</text><text x="505.0" y="182" text-anchor="middle">sends $63.40</text><text x="651.0" y="182" text-anchor="middle">gets $63.40</text><text class="t-dim" x="360" y="208" text-anchor="middle">of the $145 that left your account, <tspan class="t-am">$81.60</tspan> went to fees</text></svg>
+        </div>
+        <figcaption>fig. 1: sending $100 abroad through banks, with typical fees at each step.</figcaption>
+      </figure>
+
+      <h3>Following the $100</h3>
+      <p>The figure uses typical fees from US banks. Here is what happens to the money at each step:</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Step</th><th>What happens</th><th>Still on its way</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>You ask Bank A to send $100. Bank A charges a $45 fee for the international transfer and takes it
+            from your account, so $145 leaves your account in total.</td><td>$100</td></tr>
+          <tr><td>2</td><td>Bank C passes the payment on to Bank B and deducts $20 for its work.</td><td>$80</td></tr>
+          <tr><td>3</td><td>Bank B converts the money into the local currency at a rate 2% worse than the market rate,
+            which costs $1.60, and then charges a $15 fee for receiving the transfer.</td><td>$63.40</td></tr>
+          <tr><td>4</td><td>Your friend receives the equivalent of $63.40.</td><td>&nbsp;</td></tr>
+        </tbody>
+      </table></div>
+      <p>In the end, $81.60 of the $145 that left your account went to fees, which is more than half.</p>
+
+      <h3>What it costs</h3>
+      <p>The amounts in the example sit in the middle of these usual ranges:</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Fee</th><th>Charged by</th><th>Typical amount</th></tr></thead>
+        <tbody>
+          <tr><td>Outgoing international transfer</td><td>Bank A</td><td>$25 to $50</td></tr>
+          <tr><td>Intermediary fee</td><td>each correspondent bank</td><td>$10 to $30</td></tr>
+          <tr><td>Incoming international transfer</td><td>Bank B</td><td>$0 to $25</td></tr>
+          <tr><td>Currency conversion</td><td>Bank A or Bank B</td><td>1% to 3% above the market rate</td></tr>
+        </tbody>
+      </table></div>
+      <p>Most of these fees are flat, which means they cost the same whether you send $100 or $20,000. For large
+        transfers they are a small fraction of the amount, but for small ones, like this example, they can take more than
+        half.</p>
+
+      <h3>How long it takes</h3>
+      <p>The instructions themselves travel quickly: about 90% of cross-border payments on SWIFT reach the receiving bank
+        within an hour. The money reaching your friend's account is a different matter, since only 43% of cross-border
+        payments are completed end to end within an hour. Most of the delay happens at the receiving bank, which runs its
+        own compliance checks, processes payments in batches and only works on business days. A transfer sent on a
+        Friday night can easily wait until Monday.</p>
+
+      <h3>What if your country is cut off from SWIFT?</h3>
+      <p>Now imagine that your country enters a conflict and, as part of international sanctions, its banks are
+        disconnected from SWIFT.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 218" role="img" aria-labelledby="f2-t"><title id="f2-t">After the disconnection, payments inside country A still work, but the transfer to country B stops at Bank A.</title><defs>
+            <marker id="f2-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker>
+            <marker id="f2-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker>
+            <marker id="f2-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker>
+          </defs><text class="t-dim" x="8" y="18">inside country A</text><rect class="box" x="8" y="30" width="118" height="50"/><text class="t-hi" x="20" y="53.0">YOU</text><text class="t-dim" x="20" y="71.0">country A</text><rect class="box" x="154" y="30" width="118" height="50"/><text class="t-hi" x="166" y="53.0">BANK A</text><text class="t-dim" x="166" y="71.0">country A</text><rect class="box" x="300" y="30" width="118" height="50"/><text class="t-hi" x="312" y="53.0">SHOP</text><text class="t-dim" x="312" y="71.0">country A</text><path class="ln-fg" d="M126,55.0 H153" marker-end="url(#f2-fg)"/><path class="ln-fg" d="M272,55.0 H299" marker-end="url(#f2-fg)"/><text x="446" y="60.0">works: national payment system</text><text class="t-dim" x="8" y="116">to country B</text><rect class="box" x="8" y="128" width="118" height="50"/><text class="t-hi" x="20" y="151.0">YOU</text><text class="t-dim" x="20" y="169.0">country A</text><rect class="box" x="154" y="128" width="118" height="50"/><text class="t-hi" x="166" y="151.0">BANK A</text><text class="t-dim" x="166" y="169.0">country A</text><rect class="box dim" x="300" y="128" width="118" height="50"/><text class="t-hi dim" x="312" y="151.0">BANK C</text><text class="t-dim" x="312" y="169.0">correspondent</text><rect class="box dim" x="446" y="128" width="118" height="50"/><text class="t-hi dim" x="458" y="151.0">BANK B</text><text class="t-dim" x="458" y="169.0">country B</text><rect class="box dim" x="592" y="128" width="118" height="50"/><text class="t-hi dim" x="604" y="151.0">FRIEND</text><text class="t-dim" x="604" y="169.0">country B</text><path class="ln-fg" d="M126,153.0 H153" marker-end="url(#f2-fg)"/><path class="ln-red" d="M272,153.0 H299"/><path class="ln-red solid" d="M279.0,146.0 L293.0,160.0 M293.0,146.0 L279.0,160.0"/><path class="ln-dim" d="M418,153.0 H445" marker-end="url(#f2-dim)"/><path class="ln-dim" d="M564,153.0 H591" marker-end="url(#f2-dim)"/><text class="t-red" x="360" y="208" text-anchor="middle">Bank A has no SWIFT access: the transfer cannot leave country A</text></svg>
+        </div>
+        <figcaption>fig. 2: country A is cut off from SWIFT. Local payments work; transfers abroad stop at Bank A.</figcaption>
+      </figure>
+
+      <p>From that moment Bank A can no longer exchange payment instructions with banks abroad, and the correspondent
+        banks may also freeze the accounts they hold for it. Your $100 has no way out of the country through the usual
+        route, and money sent to you from abroad cannot get in. Paying in a local shop still works, because payments
+        inside the country run on national systems that do not depend on SWIFT.</p>
+      <p>This is possible because SWIFT is a single organization, based in Belgium and subject to its laws. One legal
+        decision, applied at one point, is enough to remove access for every customer of the affected banks.</p>
+
+      <h3>Who can stop the payment</h3>
+      <p>Bank A, each correspondent bank, SWIFT, Bank B and the regulators of every country involved can delay, charge or
+        block the transfer. That same control has a useful side: when something goes wrong, a bank can stop a fraudulent
+        payment, fix a mistake or give you a refund.</p>
+
+      <h2 id="s3" data-short="on solana"><span class="n">03</span>Example 2: sending $100 abroad on Solana</h2>
+      <p>This time you and your friend each have a <strong>wallet</strong>, an app that holds your keys and lets you send
+        and receive funds. You hold 100 <strong>USDC</strong>, a digital token issued by the company Circle in which each
+        unit is worth one US dollar. Because its value stays at one dollar, your friend receives the same amount you send,
+        without exchange-rate surprises.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 232" role="img" aria-labelledby="f3-t"><title id="f3-t">Your wallet sends a signed transaction to the Solana network, a mesh of independent validators, and your friend receives 100 USDC. Fee 0.000005 SOL, final in under a second.</title><defs>
+            <marker id="f3-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker>
+            <marker id="f3-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker>
+            <marker id="f3-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker>
+          </defs><rect class="net" x="204" y="26" width="312" height="150"/><text class="t-dim" x="360" y="18" text-anchor="middle">SOLANA NETWORK</text><line class="ax" x1="244" y1="62" x2="300" y2="44"/><line class="ax" x1="300" y1="44" x2="372" y2="52"/><line class="ax" x1="372" y1="52" x2="444" y2="46"/><line class="ax" x1="444" y1="46" x2="484" y2="86"/><line class="ax" x1="484" y1="86" x2="470" y2="136"/><line class="ax" x1="470" y1="136" x2="400" y2="152"/><line class="ax" x1="400" y1="152" x2="322" y2="146"/><line class="ax" x1="322" y1="146" x2="250" y2="126"/><line class="ax" x1="250" y1="126" x2="244" y2="62"/><line class="ax" x1="366" y1="102" x2="244" y2="62"/><line class="ax" x1="366" y1="102" x2="372" y2="52"/><line class="ax" x1="366" y1="102" x2="484" y2="86"/><line class="ax" x1="366" y1="102" x2="400" y2="152"/><line class="ax" x1="366" y1="102" x2="250" y2="126"/><line class="ax" x1="300" y1="44" x2="366" y2="102"/><line class="ax" x1="444" y1="46" x2="366" y2="102"/><rect class="vnode" x="237" y="55" width="14" height="14"/><rect class="vnode" x="293" y="37" width="14" height="14"/><rect class="vnode" x="365" y="45" width="14" height="14"/><rect class="vnode" x="437" y="39" width="14" height="14"/><rect class="vnode" x="477" y="79" width="14" height="14"/><rect class="vnode" x="463" y="129" width="14" height="14"/><rect class="vnode" x="393" y="145" width="14" height="14"/><rect class="vnode" x="315" y="139" width="14" height="14"/><rect class="vnode" x="243" y="119" width="14" height="14"/><rect class="vnode" x="359" y="95" width="14" height="14"/><rect class="box" x="8" y="72" width="118" height="56"/><text class="t-hi" x="20" y="98.0">YOU</text><text class="t-dim" x="20" y="116.0">wallet</text><rect class="box" x="594" y="72" width="118" height="56"/><text class="t-hi" x="606" y="98.0">FRIEND</text><text class="t-dim" x="606" y="116.0">wallet</text><path class="ln-fg" d="M126,100.0 H203" marker-end="url(#f3-fg)"/><path class="ln-fg" d="M516,100.0 H593" marker-end="url(#f3-fg)"/><text class="t-dim" x="165.0" y="90.0" text-anchor="middle">signed tx</text><text class="t-dim" x="555.0" y="90.0" text-anchor="middle">+100 USDC</text><text class="t-dim" x="360" y="196" text-anchor="middle">validators run independently in many countries · one shared ledger</text><text x="360" y="222" text-anchor="middle">friend gets 100 USDC · fee: <tspan class="t-am">0.000005 SOL</tspan> · final in under 1 s</text></svg>
+        </div>
+        <figcaption>fig. 3: the same $100 on Solana. One transaction, no intermediaries.</figcaption>
+      </figure>
+
+      <h3>What happens in the figure</h3>
+      <ol>
+        <li>Your wallet prepares a transaction that says, in short, "move 100 USDC from my account to my friend's
+          account", and signs it with your private key. The signature proves that you, and only you, authorized it.</li>
+        <li>The wallet sends the transaction to the Solana network, which is made up of many independent computers called
+          <strong>validators</strong>.</li>
+        <li>The validator whose turn it is to produce the next block includes your transaction. The other validators check
+          that the signature is valid and that you actually have 100 USDC, and then vote on the block.</li>
+        <li>Once enough validators agree, the transfer is final. Every validator updates its own copy of the records: your
+          account goes down by 100 USDC and your friend's goes up by 100 USDC.</li>
+      </ol>
+      <p>Nobody between you and your friend takes a cut, so the 100 USDC arrive complete.</p>
+
+      <h3>What it costs</h3>
+      <p>The network charges 5,000 lamports per signature, which is 0.000005 SOL. To put that in perspective, even if
+        1 SOL cost $1,000, the fee would be half a cent. When the network is busy, wallets can add a small optional
+        priority fee to move the transaction ahead in line.</p>
+      <p>Unlike bank fees, this cost does not depend on the amount or on the destination country. There are two small
+        details to keep in mind, though: you need a little SOL in your wallet to pay the fee, even when you send USDC, and
+        the first time your friend receives USDC, a small one-time deposit is needed to create the account that will hold
+        it.</p>
+
+      <h3>How long it takes</h3>
+      <p>Solana produces a new block every 200 ms and aims to make each block final about 150 ms later, so the transfer is
+        usually complete in less than a second. The network runs 24 hours a day, weekends and holidays included.</p>
+
+      <h3>What if your country is cut off from SWIFT?</h3>
+      <p>The Solana network does not keep a list of member countries or banks, and there is no central operator with the
+        power to disconnect a participant. Validators are run by independent operators in many countries, and if some of
+        them go offline, even all the ones in a single country, the rest keep producing blocks as long as enough of the
+        network stays online.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 232" role="img" aria-labelledby="f4-t"><title id="f4-t">Two of ten validators are offline. The remaining validators keep the network running and the transfer still reaches your friend.</title><defs>
+            <marker id="f4-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker>
+            <marker id="f4-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker>
+            <marker id="f4-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker>
+          </defs><rect class="net" x="204" y="26" width="312" height="150"/><text class="t-dim" x="360" y="18" text-anchor="middle">SOLANA NETWORK</text><line class="ln-dim" x1="244" y1="62" x2="300" y2="44"/><line class="ax" x1="300" y1="44" x2="372" y2="52"/><line class="ax" x1="372" y1="52" x2="444" y2="46"/><line class="ax" x1="444" y1="46" x2="484" y2="86"/><line class="ax" x1="484" y1="86" x2="470" y2="136"/><line class="ax" x1="470" y1="136" x2="400" y2="152"/><line class="ax" x1="400" y1="152" x2="322" y2="146"/><line class="ln-dim" x1="322" y1="146" x2="250" y2="126"/><line class="ln-dim" x1="250" y1="126" x2="244" y2="62"/><line class="ln-dim" x1="366" y1="102" x2="244" y2="62"/><line class="ax" x1="366" y1="102" x2="372" y2="52"/><line class="ax" x1="366" y1="102" x2="484" y2="86"/><line class="ax" x1="366" y1="102" x2="400" y2="152"/><line class="ln-dim" x1="366" y1="102" x2="250" y2="126"/><line class="ax" x1="300" y1="44" x2="366" y2="102"/><line class="ax" x1="444" y1="46" x2="366" y2="102"/><rect class="vnode off" x="237" y="55" width="14" height="14"/><path class="ln-red solid" d="M239,57 L249,67 M249,57 L239,67"/><rect class="vnode" x="293" y="37" width="14" height="14"/><rect class="vnode" x="365" y="45" width="14" height="14"/><rect class="vnode" x="437" y="39" width="14" height="14"/><rect class="vnode" x="477" y="79" width="14" height="14"/><rect class="vnode" x="463" y="129" width="14" height="14"/><rect class="vnode" x="393" y="145" width="14" height="14"/><rect class="vnode" x="315" y="139" width="14" height="14"/><rect class="vnode off" x="243" y="119" width="14" height="14"/><path class="ln-red solid" d="M245,121 L255,131 M255,121 L245,131"/><rect class="vnode" x="359" y="95" width="14" height="14"/><rect class="box" x="8" y="72" width="118" height="56"/><text class="t-hi" x="20" y="98.0">YOU</text><text class="t-dim" x="20" y="116.0">wallet</text><rect class="box" x="594" y="72" width="118" height="56"/><text class="t-hi" x="606" y="98.0">FRIEND</text><text class="t-dim" x="606" y="116.0">wallet</text><path class="ln-fg" d="M126,100.0 H203" marker-end="url(#f4-fg)"/><path class="ln-fg" d="M516,100.0 H593" marker-end="url(#f4-fg)"/><text class="t-dim" x="165.0" y="90.0" text-anchor="middle">signed tx</text><text class="t-dim" x="555.0" y="90.0" text-anchor="middle">+100 USDC</text><text class="t-red" x="214" y="170">offline</text><text class="t-dim" x="360" y="196" text-anchor="middle">2 of 10 validators offline · the rest keep producing blocks</text><text x="360" y="222" text-anchor="middle">the transfer still arrives</text></svg>
+        </div>
+        <figcaption>fig. 4: when some validators go offline, the others keep the network running.</figcaption>
+      </figure>
+
+      <h3>What does not change</h3>
+      <p>Moving money on the network is only part of the story, and a few limits remain:</p>
+      <ul>
+        <li><strong>Getting money in and out.</strong> To turn your local currency into USDC, and back again, you usually
+          go through an exchange. Exchanges are regulated companies, so they can block individual users or whole
+          countries.</li>
+        <li><strong>The token issuer.</strong> Circle can freeze the USDC held at specific addresses. The network is
+          decentralized, but that particular token is not.</li>
+        <li><strong>The law.</strong> Sanctions and financial regulations apply to people and companies regardless of the
+          technology they use.</li>
+        <li><strong>Nobody to call.</strong> If you send funds to the wrong address or lose your private key, there is no
+          bank that can reverse the transfer or recover the money.</li>
+        <li><strong>Price.</strong> USDC is designed to stay at one dollar, but if you send SOL instead, its value in dollars
+          can change considerably from one day to the next.</li>
+      </ul>
+
+      <h2 id="s4" data-short="side by side"><span class="n">04</span>Side by side</h2>
+      <div class="tbl"><table>
+        <thead><tr><th></th><th>Bank transfer (SWIFT)</th><th>Solana</th></tr></thead>
+        <tbody>
+          <tr><td>Who keeps the records</td><td>each bank keeps its own</td><td>every validator keeps the same copy</td></tr>
+          <tr><td>Intermediaries</td><td>one or more correspondent banks</td><td>none</td></tr>
+          <tr><td>Fees to send $100</td><td>~$35 to $105, plus currency conversion</td><td>under $0.01</td></tr>
+          <tr><td>Your friend receives</td><td>$63.40 in our example</td><td>100 USDC</td></tr>
+          <tr><td>Time</td><td>minutes to days</td><td>under a second</td></tr>
+          <tr><td>Hours</td><td>bank business days</td><td>24/7</td></tr>
+          <tr><td>Who can block it</td><td>any bank in the chain, SWIFT, regulators</td><td>no single party on the network; exchanges and token issuers can</td></tr>
+          <tr><td>Mistakes</td><td>sometimes reversible through the bank</td><td>not reversible</td></tr>
+          <tr><td>What you need</td><td>a bank account</td><td>a wallet and a little SOL</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2 id="s5" data-short="summary"><span class="n">05</span>Summary</h2>
+      <p>In a centralized system, one operator keeps the records and can approve, charge, delay or block each payment.
+        In a decentralized system, many independent operators keep the same records, and none of them can exclude a
+        participant on their own.</p>
+      <p>Decentralization removes intermediaries and single points of control, which makes transfers cheaper, faster and
+        harder to block. It also removes the protections an intermediary offers, so the responsibility for keys and
+        mistakes moves to you.</p>
+
+      <h3>Sources</h3>
+      <ul class="meta">
+        <li><a href="https://www.swift.com/news-events/news/swift-data-shows-focus-needed-beneficiary-leg-faster-international-payments" target="_blank" rel="noopener">Swift: speed of cross-border payments</a></li>
+        <li><a href="https://www.nerdwallet.com/banking/learn/wire-transfers-what-banks-charge" target="_blank" rel="noopener">NerdWallet: wire transfer fees by bank</a></li>
+        <li><a href="https://solana.com/upgrades/alpenglow" target="_blank" rel="noopener">Solana: Alpenglow</a> and <a href="https://solana.com/upgrades/reduced-slot-times" target="_blank" rel="noopener">reduced slot times</a></li>
+      </ul>
+    </article>
+
+    <hr>
+    <nav class="pager" id="pager" aria-label="Previous and next"></nav>
+    <hr>
+    <footer>solana field manual · last updated 18 Nov 2026</footer>
+  </main>
+</div>
+
+<script src="../data/articles.js" defer></script>
+<script src="../js/helpers/clock.js" defer></script>
+<script src="../js/helpers/sidebar.js" defer></script>
+<script src="../js/helpers/scroll-spy.js" defer></script>
+<script src="../js/helpers/copy-code.js" defer></script>
+<script src="../js/helpers/glossary-filter.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 1. Change the title -->
+<title>ARTICLE TITLE · Solana Field Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/components.css">
+</head>
+<!-- 2. data-page must match the "id" of this article in data/articles.js -->
+<body data-root="../" data-page="03">
+<div class="layout">
+  <aside class="side" id="sidebar" aria-label="Site index"></aside>
+
+  <main class="content">
+    <article class="article">
+      <p class="meta">~/manual/03-file-name.txt</p>
+      <h1>Article title</h1>
+      <p class="lead">One sentence that says what the reader will learn.</p>
+      <ul class="meta-list">
+        <li><span class="k">level</span>beginner</li>
+        <li><span class="k">prerequisites</span>none</li>
+        <li><span class="k">reading time</span>~5 min</li>
+        <li><span class="k">facts verified</span>DD Mon YYYY</li>
+      </ul>
+      <hr>
+
+      <!-- 3. Sections. Every <h2> with an id appears in "on this page".
+              data-short is the label shown in the sidebar. -->
+      <h2 id="s1" data-short="first topic"><span class="n">01</span>First section</h2>
+      <p>Text.</p>
+
+      <h3>Subsection</h3>
+      <p>Text with <code>inline code</code> and <strong>bold</strong>.</p>
+
+      <!-- Code block. Add data-raw to the button to copy comments too. -->
+      <div class="code">
+        <div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre><span class="c"># comment</span>
+solana --version</pre>
+      </div>
+
+      <!-- Table -->
+      <div class="tbl"><table>
+        <thead><tr><th>Column</th><th>Column</th></tr></thead>
+        <tbody><tr><td>value</td><td>value</td></tr></tbody>
+      </table></div>
+
+      <!-- Notes: .note (info) · .note.warn (amber) · .note.crit (red) -->
+      <div class="note">
+        <span class="t">[i] note</span>
+        <p>Text.</p>
+      </div>
+
+      <!-- Figure: inline SVG. Use the classes in css/components.css (.box, .ln, .t-hi, .t-dim...) -->
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 120" role="img" aria-labelledby="figX-t">
+            <title id="figX-t">Describe the figure here.</title>
+            <rect class="box" x="10" y="20" width="180" height="80"/>
+            <text class="t-hi" x="24" y="48">BOX</text>
+          </svg>
+        </div>
+        <figcaption>fig. 1: caption.</figcaption>
+      </figure>
+
+      <h2 id="s2" data-short="summary"><span class="n">02</span>Summary</h2>
+      <p>Text.</p>
+    </article>
+
+    <hr>
+    <nav class="pager" id="pager" aria-label="Previous and next"></nav>
+    <hr>
+    <footer>solana field manual · last updated DD Mon YYYY</footer>
+  </main>
+</div>
+
+<script src="../data/articles.js" defer></script>
+<script src="../js/helpers/clock.js" defer></script>
+<script src="../js/helpers/sidebar.js" defer></script>
+<script src="../js/helpers/scroll-spy.js" defer></script>
+<script src="../js/helpers/copy-code.js" defer></script>
+<script src="../js/helpers/glossary-filter.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>

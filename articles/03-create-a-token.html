@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Your Own Token · Solana Field Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/components.css">
+</head>
+<body data-root="../" data-page="03">
+<div class="layout">
+  <aside class="side" id="sidebar" aria-label="Site index"></aside>
+
+  <main class="content">
+    <article class="article">
+      <p class="meta">~/manual/03-create-a-token.txt</p>
+      <h1>Create your own token on devnet</h1>
+      <p class="lead">In this hands-on guide you create a token from the command line, mint 1,000 units, send some to a
+        second wallet, freeze an account and lock the supply for good. Everything happens on devnet, so nothing you create
+        has real value.</p>
+      <ul class="meta-list">
+        <li><span class="k">level</span>beginner</li>
+        <li><span class="k">prerequisites</span>Solana CLI installed, a wallet on devnet</li>
+        <li><span class="k">time</span>~15 min</li>
+        <li><span class="k">tools</span>solana, spl-token 5.6</li>
+        <li><span class="k">tested with</span>spl-token 5.6.1 on a local validator</li>
+        <li><span class="k">facts verified</span>18 Nov 2026</li>
+      </ul>
+      <hr>
+
+      <h2 id="s1" data-short="before you start"><span class="n">01</span>Before you start</h2>
+      <p>You need the Solana CLI, which already includes the <code>spl-token</code> tool used in this guide. Check that
+        both are available:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>solana --version
+spl-token --version</pre></div>
+      <p>If <code>spl-token</code> is missing, you can install it with Rust's package manager:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>cargo install spl-token-cli --version 5.6.1</pre></div>
+      <p>Then make sure the CLI points to devnet and that your wallet has some SOL to pay fees and deposits:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>solana config set --url devnet
+solana balance
+<span class="c"># if the balance is 0, request test SOL</span>
+solana airdrop 1</pre></div>
+      <div class="note">
+        <span class="t">[i] if the airdrop fails</span>
+        <p>The devnet faucet limits how many requests you can make. Use the web faucet at
+          <a href="https://faucet.solana.com" target="_blank" rel="noopener">faucet.solana.com</a> instead.</p>
+      </div>
+      <p>The commands in this guide save addresses in shell variables such as <code>$MINT</code>, so you can copy them
+        without editing. They work in bash and zsh; on Windows, use WSL.</p>
+      <p>Most steps include a screen with the output we got when running them, so you can compare it with yours. Your
+        addresses and signatures will be different, and long values appear shortened with an ellipsis.</p>
+
+      <h2 id="s2" data-short="create the token"><span class="n">02</span>Create the token</h2>
+      <p>Creating a token means creating its mint account. The following command creates one with 6 decimals, like USDC,
+        and with a freeze authority, which you will use later:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>spl-token create-token --decimals 6 --enable-freeze</pre></div>
+      <p>The output includes a line that starts with <code>Address:</code> followed by the address of your new mint:</p>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 1</span><span>terminal</span></div>
+<pre><span class="pr">$</span> <span class="cmd">spl-token create-token --decimals 6 --enable-freeze</span>
+Creating token DzVH…7rsJ under program Tokenkeg…5DA
+
+Address:  <span class="hl">DzVHtrdtmZjAWF127QpkDwnKWQkgmB2RSEVpYd5f7rsJ</span>
+<span class="ann">          ^ your mint address: copy it into $MINT</span>
+Decimals:  6
+
+Signature: 5AfVKXPT…sdax</pre>
+        <figcaption>the mint address is the line that starts with Address.</figcaption>
+      </figure>
+
+      <p>Copy that address into a variable, replacing the placeholder:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>export MINT=&lt;YOUR_MINT_ADDRESS&gt;</pre></div>
+      <p>Now look at what you created:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>spl-token display $MINT</pre></div>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 2</span><span>terminal</span></div>
+<pre><span class="pr">$</span> <span class="cmd">spl-token display $MINT</span>
+
+SPL Token Mint
+  Address: DzVH…7rsJ
+  Program: Tokenkeg…5DA
+  Supply: <span class="hl">0</span>                       <span class="ann">← no units exist yet</span>
+  Decimals: <span class="hl">6</span>
+  Mint authority: <span class="hl">8eTr…EcW8</span>       <span class="ann">← your wallet</span>
+  Freeze authority: <span class="hl">8eTr…EcW8</span>     <span class="ann">← your wallet</span></pre>
+        <figcaption>a new mint: supply 0, and your wallet holds both authorities.</figcaption>
+      </figure>
+
+      <p>The supply is 0, the token uses 6 decimals, and your wallet appears as both the mint authority and the freeze
+        authority. The token exists, but nobody holds any of it yet.</p>
+      <div class="note">
+        <span class="t">[i] about the flags</span>
+        <p>Without <code>--decimals</code>, the CLI uses 9. Without <code>--enable-freeze</code>, the mint has no freeze
+          authority, and a freeze authority cannot be added once the mint exists.</p>
+      </div>
+
+      <h2 id="s3" data-short="mint units"><span class="n">03</span>Create your account and mint 1,000 units</h2>
+      <p>Before you can hold your token, your wallet needs a token account for it. This command creates your associated
+        token account and pays its refundable deposit:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>spl-token create-account $MINT</pre></div>
+      <p>The output starts with <code>Creating account</code> followed by the address of your token account:</p>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 3</span><span>terminal</span></div>
+<pre><span class="pr">$</span> <span class="cmd">spl-token create-account $MINT</span>
+Creating account <span class="hl">6873U26r3nYoHDz5Ve7vLHnewfp8nyCA9mVb9YoEJf8F</span>
+<span class="ann">                 ^ your token account: copy it into $MY_ACCOUNT</span>
+
+Signature: YfJMDXvW…aqpM</pre>
+        <figcaption>the address after "Creating account" is your token account.</figcaption>
+      </figure>
+
+      <p>Save it as well, because you will freeze this account in section 05:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>export MY_ACCOUNT=&lt;YOUR_TOKEN_ACCOUNT_ADDRESS&gt;</pre></div>
+      <p>As the mint authority, you can now create units. Mint 1,000 and check the result:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>spl-token mint $MINT 1000
+spl-token balance $MINT
+spl-token supply $MINT</pre></div>
+      <p>Both commands answer 1000. Behind the scenes, with 6 decimals, the token account stores the number
+        1,000,000,000, and you will see that raw number in section 06.</p>
+
+      <h2 id="s4" data-short="send tokens"><span class="n">04</span>Send tokens to a second wallet</h2>
+      <p>To see a transfer, you need someone to receive it. Create a second wallet that will act as your friend and save
+        its address:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>solana-keygen new --no-bip39-passphrase --outfile ~/friend.json
+export FRIEND=$(solana address -k ~/friend.json)</pre></div>
+      <p>Now send 10 units to that wallet:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>spl-token transfer $MINT 10 $FRIEND --fund-recipient --allow-unfunded-recipient</pre></div>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 4</span><span>terminal</span></div>
+<pre><span class="pr">$</span> <span class="cmd">spl-token transfer $MINT 10 $FRIEND --fund-recipient --allow-unfunded-recipient</span>
+Transfer 10 tokens
+  Sender: 6873…Jf8F                     <span class="ann">← your token account</span>
+  Recipient: 3zH8…SMNd                  <span class="ann">← your friend's wallet</span>
+  Recipient associated token account: <span class="hl">3z9S…Fu7H</span>
+  Funding recipient: <span class="hl">3z9S…Fu7H</span>
+<span class="ann">  ^ your friend's new token account, created and paid for by you</span>
+
+Signature: 2A2Cbwfh…jgE</pre>
+        <figcaption>the CLI calculates your friend’s associated token account and creates it before sending.</figcaption>
+      </figure>
+
+      <p>The two flags deal with the fact that your friend is brand new. Your friend has no token account for your token
+        yet, so <code>--fund-recipient</code> tells the CLI to create it and pay its deposit from your wallet: that is the
+        address shown on the <code>Recipient associated token account</code> and <code>Funding recipient</code> lines.
+        <code>--allow-unfunded-recipient</code> confirms that you really want to send to a wallet that holds no SOL, which
+        the CLI otherwise treats as a possible typo.</p>
+      <p>Check both balances:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>spl-token balance $MINT
+spl-token balance $MINT --owner $FRIEND</pre></div>
+      <p>You should see 990 and 10. The supply is still 1000, because a transfer moves units between accounts without
+        creating or destroying any.</p>
+
+      <h2 id="s5" data-short="freeze and thaw"><span class="n">05</span>Freeze and thaw an account</h2>
+      <p>Because you created the mint with a freeze authority, you can block any token account of your token, including
+        your own. Freeze yours:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>spl-token freeze $MY_ACCOUNT</pre></div>
+      <p>Then try to send 5 more units to your friend:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>spl-token transfer $MINT 5 $FRIEND --allow-unfunded-recipient</pre></div>
+      <p>The flag is still needed because your friend's wallet holds no SOL. This time the transfer fails with a long
+        error:</p>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 5</span><span>terminal</span></div>
+<pre><span class="pr">$</span> <span class="cmd">spl-token transfer $MINT 5 $FRIEND --allow-unfunded-recipient</span>
+Transfer 5 tokens
+  Sender: 6873…Jf8F
+  Recipient: 3zH8…SMNd
+  Recipient associated token account: 3z9S…Fu7H
+<span class="err">Error: Client(Error { request: Some(SendTransaction), kind: RpcError(…</span>
+<span class="err">  … "Transaction simulation failed: Error processing Instruction 0:</span>
+<span class="err">  custom program error: </span><span class="hl">0x11</span><span class="err">", …</span>
+<span class="err">  logs: Some([… "Program log: Error: </span><span class="hl">Account is frozen</span><span class="err">", …]) … })</span>
+<span class="ann err">  ^ the two parts that matter: code 0x11 and "Account is frozen"</span></pre>
+        <figcaption>the real error is one long line; here it is shortened to the parts that matter.</figcaption>
+      </figure>
+
+      <p>Of all that text, two parts matter: the code <code>0x11</code>, which is how the Token Program reports a frozen
+        account, and the log line <code>Account is frozen</code>. The tokens are still there, but they cannot move until
+        the freeze authority releases them. Thaw the account and try again:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>spl-token thaw $MY_ACCOUNT
+spl-token transfer $MINT 5 $FRIEND --allow-unfunded-recipient</pre></div>
+      <p>This time it goes through, and the balances are 985 and 15. This is the same mechanism an issuer such as Circle
+        uses when it freezes USDC at a specific address.</p>
+
+      <h2 id="s6" data-short="lock the supply"><span class="n">06</span>Lock the supply</h2>
+      <p>Right now you could mint as many new units as you like. Many projects remove the mint authority to prove that the
+        supply can never grow, and you can do the same:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>spl-token authorize $MINT mint --disable</pre></div>
+      <div class="note crit">
+        <span class="t">[!] this cannot be undone</span>
+        <p>Once the mint authority is removed, nobody can restore it. On devnet that does not matter, but on mainnet,
+          check twice before running this command.</p>
+      </div>
+      <p>Try to mint one more unit, and the command fails because no address is allowed to do it anymore:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>spl-token mint $MINT 1</pre></div>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 6</span><span>terminal</span></div>
+<pre><span class="pr">$</span> <span class="cmd">spl-token mint $MINT 1</span>
+Minting 1 tokens
+  Token: DzVH…7rsJ
+  Recipient: 6873…Jf8F
+<span class="err">Error: Client(Error { … custom program error: </span><span class="hl">0x5</span><span class="err">", …</span>
+<span class="err">  logs: Some([… "Program log: Error: </span><span class="hl">the total supply of this token is fixed</span><span class="err">", …]) … })</span></pre>
+        <figcaption>with the mint authority removed, minting fails with code 0x5. The error is shortened.</figcaption>
+      </figure>
+
+      <p>The log line says it plainly: the total supply of this token is fixed. Look at the mint once more:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>spl-token display $MINT</pre></div>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 7</span><span>terminal</span></div>
+<pre><span class="pr">$</span> <span class="cmd">spl-token display $MINT</span>
+
+SPL Token Mint
+  Address: DzVH…7rsJ
+  Program: Tokenkeg…5DA
+  Supply: <span class="hl">1000000000</span>                <span class="ann">← 1000 × 10⁶, the stored number</span>
+  Decimals: 6
+  Mint authority: <span class="hl">(not set)</span>         <span class="ann">← nobody can mint anymore</span>
+  Freeze authority: 8eTr…EcW8</pre>
+        <figcaption>display shows the supply in stored units: 1000 tokens with 6 decimals.</figcaption>
+      </figure>
+
+      <p>The mint authority now reads <code>(not set)</code>. Notice also that <code>display</code> shows the supply as
+        1000000000 rather than 1000: it prints the number stored in the mint, which is the amount multiplied by ten to
+        the power of the decimals.</p>
+
+      <h2 id="s7" data-short="explorer"><span class="n">07</span>See it in the explorer</h2>
+      <p>Everything you did is public. Print the explorer link for your token and open it in a browser:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>echo "https://explorer.solana.com/address/$MINT?cluster=devnet"</pre></div>
+      <p>The page shows the supply, the decimals, the two authorities, the token accounts that hold it and every
+        transaction you sent, including the transfer that failed while your account was frozen.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 224" role="img" aria-labelledby="f31-t"><title id="f31-t">Final state: a mint with a supply of 1000 and no mint authority, your token account with 985 and your friend’s with 15.</title><defs><marker id="f31-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f31-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f31-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><rect class="box" x="8" y="34" width="250" height="144"/><text class="t-hi " x="20" y="58">YOUR TOKEN · MINT</text><line class="sep" x1="8" y1="68" x2="258" y2="68"/><text x="20" y="90">decimals: 6</text><text x="20" y="112">supply: 1000</text><text x="20" y="134">mint authority: <tspan class="t-am">none</tspan></text><text x="20" y="156">freeze authority: you</text><rect class="box" x="430" y="24" width="282" height="62"/><text class="t-hi" x="442" y="53.0">YOUR ACCOUNT</text><text class="t-dim" x="442" y="71.0">owner: you · 985</text><rect class="box" x="430" y="126" width="282" height="62"/><text class="t-hi" x="442" y="155.0">FRIEND ACCOUNT</text><text class="t-dim" x="442" y="173.0">owner: friend · 15</text><path class="ln" d="M430,55 H344 V106 H259" marker-end="url(#f31-am)"/><path class="ln" d="M430,157 H344 V106 H259" marker-end="url(#f31-am)"/><text class="t-dim" x="360" y="214" text-anchor="middle">985 + 15 = supply 1000 · nobody can mint more</text></svg>
+        </div>
+        <figcaption>fig. 1: what you have on devnet at the end of this guide.</figcaption>
+      </figure>
+
+      <h2 id="s8" data-short="summary"><span class="n">08</span>Summary</h2>
+      <p>With a handful of commands you created a mint, opened token accounts for two wallets, moved units between them,
+        used the freeze authority and fixed the supply by removing the mint authority.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>create-token</code></td><td>Creates a mint account.</td></tr>
+          <tr><td><code>display</code></td><td>Shows the details of a mint or token account.</td></tr>
+          <tr><td><code>create-account</code></td><td>Creates your token account for a mint.</td></tr>
+          <tr><td><code>mint</code></td><td>Creates new units (mint authority only).</td></tr>
+          <tr><td><code>balance</code> / <code>supply</code></td><td>Shows a balance or the total supply.</td></tr>
+          <tr><td><code>transfer</code></td><td>Moves units to another wallet.</td></tr>
+          <tr><td><code>freeze</code> / <code>thaw</code></td><td>Blocks or releases a token account (freeze authority only).</td></tr>
+          <tr><td><code>authorize … --disable</code></td><td>Removes an authority permanently.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Sources</h3>
+      <ul class="meta">
+        <li><a href="https://solana.com/docs/references/spl-token-cli" target="_blank" rel="noopener">Solana: SPL Token CLI reference</a></li>
+        <li><a href="https://solana.com/docs/intro/installation" target="_blank" rel="noopener">Solana: installation guide</a></li>
+      </ul>
+    </article>
+
+    <hr>
+    <nav class="pager" id="pager" aria-label="Previous and next"></nav>
+    <hr>
+    <footer>solana field manual · last updated 18 Nov 2026</footer>
+  </main>
+</div>
+
+<script src="../data/articles.js" defer></script>
+<script src="../js/helpers/clock.js" defer></script>
+<script src="../js/helpers/sidebar.js" defer></script>
+<script src="../js/helpers/scroll-spy.js" defer></script>
+<script src="../js/helpers/copy-code.js" defer></script>
+<script src="../js/helpers/glossary-filter.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>

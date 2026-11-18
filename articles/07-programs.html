@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programs · Solana Field Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/components.css">
+</head>
+<body data-root="../" data-page="07">
+<div class="layout">
+  <aside class="side" id="sidebar" aria-label="Site index"></aside>
+
+  <main class="content">
+    <article class="article">
+      <p class="meta">~/manual/07-programs.txt</p>
+      <h1>Programs: how smart contracts work on Solana</h1>
+      <p class="lead">A program is code that lives on the network and runs on every validator. On Solana that code keeps no
+        data of its own, and this one design decision explains how programs store information, how they call each other
+        and why the network can run so many of them at once.</p>
+      <ul class="meta-list">
+        <li><span class="k">level</span>beginner</li>
+        <li><span class="k">prerequisites</span>none</li>
+        <li><span class="k">reading time</span>~9 min</li>
+        <li><span class="k">facts verified</span>18 Nov 2026</li>
+      </ul>
+      <hr>
+
+      <h2 id="s1" data-short="what a program is"><span class="n">01</span>What a program is</h2>
+      <p>A <strong>program</strong>, which other blockchains call a <em>smart contract</em>, is compiled code stored in an
+        account. Developers usually write it in Rust and compile it to a compact bytecode that every validator can run in an
+        isolated environment, so the same instruction produces exactly the same result on every machine.</p>
+      <p>The account that holds the code is marked as <code>executable</code>, and its address is the program's ID, which is
+        how transactions say which program they want to run. Most programs are deployed with an <strong>upgrade
+        authority</strong>, an address that can replace the code with a new version. When that authority is removed, the
+        program can never change again, which is why some projects remove it once their code is final.</p>
+
+      <h2 id="s2" data-short="code and data"><span class="n">02</span>Code in one place, data in another</h2>
+      <p>On Solana, a program does not store any data inside its own account. All the information it works with, such as
+        balances, settings or user records, lives in separate <strong>data accounts</strong> whose owner is the program.</p>
+      <p>Take a simple counter that each user can increase. The program account holds only the code that adds one to a
+        number, and every user's number lives in an account of its own:</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 262" role="img" aria-labelledby="f71-t"><title id="f71-t">The counter program account holds compiled code and no state. Ana’s counter and Luis’s counter are separate data accounts owned by the program.</title><defs><marker id="f71-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f71-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f71-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><rect class="box" x="8" y="40" width="250" height="144"/><text class="t-hi " x="20" y="64">COUNTER PROGRAM</text><line class="sep" x1="8" y1="74" x2="258" y2="74"/><text x="20" y="96">address: GmaD…AEGB</text><text x="20" y="118">executable: true</text><text x="20" y="140">data: compiled code</text><text x="20" y="162">state: none</text><rect class="box" x="462" y="10" width="250" height="100"/><text class="t-hi " x="474" y="34">ANA’S COUNTER</text><line class="sep" x1="462" y1="44" x2="712" y2="44"/><text x="474" y="66">owner: counter program</text><text x="474" y="88">data: count = 7</text><rect class="box" x="462" y="124" width="250" height="100"/><text class="t-hi " x="474" y="148">LUIS’S COUNTER</text><line class="sep" x1="462" y1="158" x2="712" y2="158"/><text x="474" y="180">owner: counter program</text><text x="474" y="202">data: count = 3</text><path class="ln" d="M258,90 H360 V60 H461" marker-end="url(#f71-am)"/><path class="ln" d="M360,90 V174 H461" marker-end="url(#f71-am)"/><text class="t-am" x="300" y="82" text-anchor="middle">owns</text><text x="360" y="252" text-anchor="middle">the program holds only code, and each user’s data lives in its own account</text></svg>
+        </div>
+        <figcaption>fig. 1: a program and the accounts it owns.</figcaption>
+      </figure>
+
+      <p>The network enforces a few rules on every account, and they are what keeps this arrangement safe:</p>
+      <ul>
+        <li>Only the <strong>owner program</strong> can change an account's data or take lamports out of it.</li>
+        <li>Anyone can add lamports to an account.</li>
+        <li>An account can hold up to 10 MiB of data, and it must keep a refundable SOL deposit proportional to its size.</li>
+      </ul>
+      <p>When a transaction calls a program, it passes the list of accounts the program will use, and the program receives
+        them as inputs. A well-written program checks each of them before trusting it: that the account belongs to the
+        right owner, that the expected person signed, and that the address is the one it should be. Skipping those checks is
+        one of the most common sources of bugs in Solana programs.</p>
+
+      <h2 id="s3" data-short="PDAs"><span class="n">03</span>Accounts that belong to a program: PDAs</h2>
+      <p>If every user's counter lives in a separate account, two questions follow: how does anyone find Ana's counter, and
+        who controls an account that belongs to a program rather than to a person? Both have the same answer, the
+        <strong>Program Derived Address</strong>, or PDA.</p>
+      <p>A PDA is an address calculated from a few values chosen by the program, called <strong>seeds</strong>, plus the
+        program's own address. For Ana's counter, the seeds could be the word <code>"counter"</code> and Ana's address. The
+        network hashes them with SHA-256 together with one extra number, the <strong>bump</strong>, starting at 255. If the
+        result happens to be a valid public key, one that could have a private key, it tries again with 254, then 253, and
+        keeps the first one that is not.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 272" role="img" aria-labelledby="f72-t"><title id="f72-t">Seeds counter and Ana’s address plus the program address are hashed with a bump. Bumps 255 and 254 give addresses on the curve and are rejected. Bump 253 gives the PDA AWVN…irw3.</title><defs><marker id="f72-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f72-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f72-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><rect class="box" x="8" y="26" width="236" height="122"/><text class="t-hi " x="20" y="50">INPUTS</text><line class="sep" x1="8" y1="60" x2="244" y2="60"/><text x="20" y="82">"counter"</text><text x="20" y="104">Ana’s address</text><text x="20" y="126">program: GmaD…AEGB</text><rect class="box" x="300" y="54" width="120" height="64"/><text class="t-hi" x="312" y="84.0">SHA-256</text><text class="t-dim" x="312" y="102.0">+ bump</text><path class="ln-fg" d="M244,86 H299" marker-end="url(#f72-fg)"/><path class="ln-dim" d="M420,86 H448 V40 H475" marker-end="url(#f72-dim)"/><text class="t-dim" x="482" y="45">bump 255</text><text class="t-red" x="570" y="45">on the curve ✕</text><path class="ln-dim" d="M420,86 H448 V80 H475" marker-end="url(#f72-dim)"/><text class="t-dim" x="482" y="85">bump 254</text><text class="t-red" x="570" y="85">on the curve ✕</text><path class="ln-fg" d="M420,86 H448 V120 H475" marker-end="url(#f72-fg)"/><text x="482" y="125">bump 253</text><text class="t-am" x="570" y="125">off the curve ✓</text><rect class="box" x="8" y="176" width="704" height="60"/><text class="t-hi " x="20" y="212.0">PDA: AWVN…irw3</text><text x="360" y="262" text-anchor="middle">no private key exists for this address, so only the counter program can sign for it</text></svg>
+        </div>
+        <figcaption>fig. 2: deriving the address of Ana’s counter. Real values for an example program.</figcaption>
+      </figure>
+
+      <p>Those are real values for an example program: with bumps 255 and 254 the result could have had a private key, so
+        both were rejected, and 253 produced the address. Because nobody can hold a private key for it, the only one that can
+        authorize changes to a PDA is the program whose address went into the calculation. And because the inputs are public,
+        anyone can repeat the calculation and find Ana's counter without asking anyone.</p>
+      <p>In Anchor, the most common framework for writing programs, the seeds are declared next to the account:</p>
+      <div class="code">
+        <div class="label"><span>rust · anchor</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre><span class="c">// The data each counter account stores</span>
+#[account]
+pub struct Counter {
+    pub count: u64,
+}
+
+<span class="c">// The accounts the increment instruction receives</span>
+#[derive(Accounts)]
+pub struct Increment&lt;'info&gt; {
+    <span class="c">// Ana's counter: the PDA of ["counter", Ana's address]</span>
+    #[account(mut, seeds = [b"counter", user.key().as_ref()], bump)]
+    pub counter: Account&lt;'info, Counter&gt;,
+    pub user: Signer&lt;'info&gt;,
+}
+
+<span class="c">// The instruction itself, inside the program module</span>
+pub fn increment(ctx: Context&lt;Increment&gt;) -&gt; Result&lt;()&gt; {
+    ctx.accounts.counter.count += 1;
+    Ok(())
+}</pre>
+      </div>
+      <p>Before running <code>increment</code>, Anchor recalculates the PDA from the seeds and checks that the account it
+        received is exactly that one, which is the kind of account check described in section 02.</p>
+
+      <h3>PDAs you have already met</h3>
+      <p>Associated token accounts are PDAs too. They belong to the Associated Token Program, and their seeds are the wallet
+        address, the token program and the token's mint. With those three values, the USDC account of Ana's wallet
+        <code>7xKX…sAsU</code> is always <code>2yF5…dkjZ</code>, so any app can send her USDC without asking where to put it.
+        Many programs also use PDAs as <strong>vaults</strong>: accounts that hold tokens on behalf of the program, which only
+        its code can move.</p>
+
+      <h2 id="s4" data-short="calling programs"><span class="n">04</span>Programs that call other programs</h2>
+      <p>A program can call another program in the middle of its own execution, which is known as a <strong>cross-program
+        invocation</strong> or CPI. This is how programs reuse each other instead of reimplementing everything: an exchange
+        does not move tokens itself, it asks the Token Program to do it.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 264" role="img" aria-labelledby="f73-t"><title id="f73-t">A transaction calls a swap program, which calls the Token Program twice: once with Ana’s signature to move her tokens into the pool, and once signing for the pool PDA to send tokens back.</title><defs><marker id="f73-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f73-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f73-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><rect class="box" x="8" y="92" width="170" height="64"/><text class="t-hi" x="20" y="122.0">TRANSACTION</text><text class="t-dim" x="20" y="140.0">signed by Ana</text><rect class="box" x="256" y="92" width="180" height="64"/><text class="t-hi" x="268" y="122.0">SWAP PROGRAM</text><text class="t-dim" x="268" y="140.0">depth 1</text><rect class="box" x="536" y="22" width="176" height="64"/><text class="t-hi" x="548" y="52.0">TOKEN PROGRAM</text><text class="t-dim" x="548" y="70.0">depth 2 · Ana → pool</text><rect class="box" x="536" y="162" width="176" height="64"/><text class="t-hi" x="548" y="192.0">TOKEN PROGRAM</text><text class="t-dim" x="548" y="210.0">depth 2 · pool → Ana</text><path class="ln-fg" d="M178,124 H255" marker-end="url(#f73-fg)"/><path class="ln-fg" d="M436,112 H470 V54 H535" marker-end="url(#f73-fg)"/><path class="ln" d="M470,113 V194 H535" marker-end="url(#f73-am)"/><text class="t-dim" x="498" y="43" text-anchor="middle">Ana signs</text><text class="t-am" x="498" y="210" text-anchor="middle">PDA signs</text><text x="360" y="254" text-anchor="middle">each call is an inner instruction · at most 4 levels of nesting on mainnet today</text></svg>
+        </div>
+        <figcaption>fig. 3: programs calling programs during a swap.</figcaption>
+      </figure>
+
+      <p>In a swap, the program makes two calls. To take Ana's tokens, it calls the Token Program and passes along Ana's
+        signature, because the signature of the transaction remains valid in the calls it triggers. To pay her back from the
+        pool, it calls the Token Program again, but the pool's tokens sit in a vault that is a PDA, and nobody has its private
+        key. In that case the swap program signs for the PDA itself by providing the seeds, something only the program that
+        derived it is allowed to do.</p>
+      <p>Each of these calls appears in an explorer as an inner instruction. On mainnet, a chain of calls can be at most 4
+        levels deep. An upgrade that raises the limit to 8 has been approved and already runs on local test validators, but
+        it is not active on mainnet yet. One restriction does not change: a program cannot be called again through another
+        program it called, so A → B → A is never allowed.</p>
+
+      <h2 id="s5" data-short="parallel execution"><span class="n">05</span>Why this design runs in parallel</h2>
+      <p>Every transaction declares in advance every account it will read or write. With that list, the validator can see
+        before running anything which transactions touch the same accounts, and send the ones that do not to different CPU
+        cores at the same time.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 242" role="img" aria-labelledby="f74-t"><title id="f74-t">When Ana and Luis write to their own counters, two cores run both transactions at once. When both write to one global counter, the second waits for the first.</title><defs><marker id="f74-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f74-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f74-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><text class="t-dim" x="8" y="16">each user writes to their own counter</text><text class="t-dim" x="8" y="48">core 1</text><line class="sep" x1="90" y1="43" x2="712" y2="43"/><rect class="cell f" x="100" y="28" width="240" height="30"/><text x="110" y="48">Ana → Ana’s counter</text><text class="t-dim" x="8" y="86">core 2</text><line class="sep" x1="90" y1="81" x2="712" y2="81"/><rect class="cell f" x="100" y="66" width="240" height="30"/><text x="110" y="86">Luis → Luis’s counter</text><text class="t-dim" x="352" y="60">← at the same time</text><text class="t-dim" x="8" y="128">both write to one global counter</text><text class="t-dim" x="8" y="160">core 1</text><line class="sep" x1="90" y1="155" x2="712" y2="155"/><rect class="cell f" x="100" y="140" width="240" height="30" style="stroke:var(--amber)"/><text class="t-am" x="110" y="160">Ana → global counter</text><rect class="cell f" x="350" y="140" width="240" height="30" style="stroke:var(--amber)"/><text class="t-am" x="360" y="160">Luis → global counter</text><text class="t-dim" x="8" y="198">core 2</text><line class="sep" x1="90" y1="193" x2="712" y2="193"/><text class="t-dim" x="130" y="230">idle: the second transaction has to wait for the first</text></svg>
+        </div>
+        <figcaption>fig. 4: why separate accounts let transactions run in parallel.</figcaption>
+      </figure>
+
+      <p>This is where keeping code and data apart pays off. Because the counter program holds no data of its own, a
+        thousand users can call it in the same block without waiting for each other, as long as each one writes to their own
+        counter. If the program had stored every count in a single shared account, every transaction would write to that
+        account, and they would have to run one after another.</p>
+      <p>Popular accounts, such as the pool of a busy trading pair, still create queues, since everyone who trades in it
+        writes to it. That is why well-designed programs give each user their own account wherever they can.</p>
+
+      <h2 id="s6" data-short="summary"><span class="n">06</span>Summary</h2>
+      <p>A Solana program is code without data. Its state lives in accounts the program owns, often at addresses derived from
+        seeds so that anyone can find them and only the program can control them. Programs call each other to reuse
+        functionality, and because every transaction declares its accounts in advance, the ones that touch different accounts
+        run in parallel.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Concept</th><th>In one sentence</th></tr></thead>
+        <tbody>
+          <tr><td>Program</td><td>Compiled code stored in an executable account and identified by its address.</td></tr>
+          <tr><td>Upgrade authority</td><td>The address that can replace a program's code. Without it, the program is final.</td></tr>
+          <tr><td>Data account</td><td>An account that stores state and is owned by a program.</td></tr>
+          <tr><td>Owner</td><td>The only program allowed to change an account's data or take its lamports.</td></tr>
+          <tr><td>PDA</td><td>An address derived from seeds and a program ID, with no private key.</td></tr>
+          <tr><td>Bump</td><td>The extra number that makes a PDA fall off the curve, starting at 255.</td></tr>
+          <tr><td>CPI</td><td>A call from one program to another, shown as an inner instruction.</td></tr>
+          <tr><td>Parallel execution</td><td>Transactions that write to different accounts run at the same time.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Sources</h3>
+      <ul class="meta">
+        <li><a href="https://solana.com/docs/core/accounts" target="_blank" rel="noopener">Solana: account model</a></li>
+        <li><a href="https://solana.com/docs/core/pda/pda-derivation" target="_blank" rel="noopener">Solana: PDA derivation</a></li>
+        <li><a href="https://solana.com/upgrades/cpi-nesting-depth" target="_blank" rel="noopener">Solana: deeper CPI nesting</a></li>
+        <li><a href="https://solana.com/docs/core/accounts/modification-rules" target="_blank" rel="noopener">Solana: account modification rules</a></li>
+      </ul>
+    </article>
+
+    <hr>
+    <nav class="pager" id="pager" aria-label="Previous and next"></nav>
+    <hr>
+    <footer>solana field manual · last updated 18 Nov 2026</footer>
+  </main>
+</div>
+
+<script src="../data/articles.js" defer></script>
+<script src="../js/helpers/clock.js" defer></script>
+<script src="../js/helpers/sidebar.js" defer></script>
+<script src="../js/helpers/scroll-spy.js" defer></script>
+<script src="../js/helpers/copy-code.js" defer></script>
+<script src="../js/helpers/glossary-filter.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>

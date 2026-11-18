@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validators and Staking · Solana Field Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/components.css">
+</head>
+<body data-root="../" data-page="06">
+<div class="layout">
+  <aside class="side" id="sidebar" aria-label="Site index"></aside>
+
+  <main class="content">
+    <article class="article">
+      <p class="meta">~/manual/06-validators-and-staking.txt</p>
+      <h1>Validators and staking</h1>
+      <p class="lead">Validators run the network, and anyone who holds SOL decides which of them carry more weight. This file
+        explains what validators do, how they earn, how staking works and how to choose a validator in a way that keeps the
+        network decentralized.</p>
+      <ul class="meta-list">
+        <li><span class="k">level</span>beginner</li>
+        <li><span class="k">prerequisites</span>none</li>
+        <li><span class="k">reading time</span>~8 min</li>
+        <li><span class="k">facts verified</span>18 Nov 2026</li>
+      </ul>
+      <hr>
+
+      <h2 id="s1" data-short="what validators do"><span class="n">01</span>What a validator does</h2>
+      <p>A <strong>validator</strong> is a server running the Solana software, operated by a company, a community project or
+        an individual. It has two jobs. Most of the time it checks the blocks produced by others and votes on them. And when
+        its turn comes in the <strong>leader schedule</strong>, it becomes the leader for four consecutive slots and produces
+        the blocks itself.</p>
+      <p>Not every vote counts the same. A validator's weight in voting, and how often it becomes leader, depend on its
+        <strong>stake</strong>: the amount of SOL delegated to it. When Alpenglow went live in October 2026 the network had 654
+        validators, and most of them hold only a small share of the total stake.</p>
+
+      <h2 id="s2" data-short="income and costs"><span class="n">02</span>How validators earn and spend</h2>
+      <p>Time on Solana is also measured in <strong>epochs</strong>. An epoch lasts 432,000 slots, which at 200 ms per slot
+        is about one day, and it is the unit for everything related to staking: rewards are paid, stake is activated and the
+        leader schedule is set once per epoch.</p>
+      <p>A validator has three sources of income:</p>
+      <ul>
+        <li><strong>Inflation rewards.</strong> At the start of every epoch the network creates new SOL and distributes it
+          among validators and their stakers, in proportion to their stake and to how well they voted.</li>
+        <li><strong>Block fees.</strong> When it is the leader, a validator keeps half of the base fee and all of the priority
+          fee of every transaction it includes.</li>
+        <li><strong>Tips.</strong> Some apps add separate payments to their transactions to get them included sooner.</li>
+      </ul>
+      <p>On the cost side are the servers, which need fast hardware and a lot of bandwidth, and since Alpenglow the
+        <strong>Validator Admission Ticket</strong>: a flat 0.8 SOL per epoch that each validator pays, and that is burned, to
+        take part in the next epoch. It replaced the vote fees validators used to pay, about 1 SOL per epoch. A validator that
+        cannot pay it is left out of the next epoch and earns nothing during it.</p>
+      <p>From the inflation rewards of its stakers, each validator keeps a percentage called the <strong>commission</strong>,
+        usually between 0% and 10%. The rest goes to the people who delegated to it.</p>
+
+      <h2 id="s3" data-short="staking"><span class="n">03</span>What happens when you stake</h2>
+      <p><strong>Staking</strong> means delegating your SOL to a validator. You do not send it to them: you create a
+        <strong>stake account</strong>, move SOL into it and point it at the validator's vote account.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 228" role="img" aria-labelledby="f61-t"><title id="f61-t">You create a stake account holding 10 SOL and delegate it to a validator. The account stays under your control and receives the rewards.</title><defs><marker id="f61-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f61-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f61-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><rect class="box" x="8" y="70" width="150" height="64"/><text class="t-hi" x="20" y="100.0">YOU</text><text class="t-dim" x="20" y="118.0">wallet</text><rect class="box" x="250" y="30" width="220" height="144"/><text class="t-hi " x="262" y="54">STAKE ACCOUNT</text><line class="sep" x1="250" y1="64" x2="470" y2="64"/><text x="262" y="86">10 SOL</text><text x="262" y="108">stake authority: you</text><text x="262" y="130">withdraw auth.: you</text><text x="262" y="152">delegated to: V-17</text><rect class="box" x="562" y="70" width="150" height="64"/><text class="t-hi" x="574" y="100.0">VALIDATOR</text><text class="t-dim" x="574" y="118.0">vote account V-17</text><path class="ln-fg" d="M158,102 H249" marker-end="url(#f61-fg)"/><text class="t-dim" x="204" y="94" text-anchor="middle">creates</text><path class="ln-fg dash" d="M470,92 H561" marker-end="url(#f61-fg)"/><text class="t-dim" x="516" y="84" text-anchor="middle">points to</text><path class="ln" d="M562,124 H520 V160 H471" marker-end="url(#f61-am)"/><text class="t-am" x="516" y="182" text-anchor="middle">rewards</text><text x="360" y="218" text-anchor="middle">the SOL stays in your stake account and the validator can never withdraw it</text></svg>
+        </div>
+        <figcaption>fig. 1: delegating does not send your SOL to the validator.</figcaption>
+      </figure>
+
+      <p>The stake account has two authorities, normally both your wallet: the <strong>stake authority</strong>, which can
+        delegate or deactivate the stake, and the <strong>withdraw authority</strong>, which can take the SOL out. The
+        validator holds neither, so it cannot touch your funds. All it gets is voting weight while your stake is delegated,
+        and its commission on the rewards.</p>
+
+      <h2 id="s4" data-short="rewards"><span class="n">04</span>How much staking earns</h2>
+      <p>Solana's inflation started at 8% per year in 2021 and falls by 15% every year until it reaches a floor of 1.5%. In
+        August 2026 it was around 3.9%, and because only staked SOL receives the new coins, and about two thirds of all SOL is
+        staked, the reward for stakers was higher: about 5.35% per year before commission.</p>
+      <p>With those numbers, 100 SOL delegated to a validator with a 5% commission would grow by roughly 5 SOL in a year.
+        Rewards are added to the stake account every epoch, so they also earn rewards from then on.</p>
+      <p>Part of that return is not a gain. New SOL is created for stakers every epoch, so someone who does not stake owns a
+        slightly smaller share of all SOL every day, and staking mostly protects you from that dilution. And the rate is falling:
+        on 28 August 2026 validators voted to double the yearly reduction from 15% to 30%, which will bring inflation to its
+        floor around 2029. As of this writing, the change has been approved but not yet activated.</p>
+
+      <h2 id="s5" data-short="timing"><span class="n">05</span>Activation, deactivation and withdrawal</h2>
+      <p>Stake does not start or stop working immediately. Every change waits for the next boundary between epochs:</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 182" role="img" aria-labelledby="f62-t"><title id="f62-t">Timeline: you delegate in epoch 100, the stake activates and earns in epochs 101 and 102, you deactivate in epoch 103 and can withdraw in epoch 104.</title><defs><marker id="f62-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f62-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f62-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><rect class="cell" x="8" y="52" width="128" height="56"/><text class="t-hi" x="18" y="76">EPOCH 100</text><text class="t-dim" x="18" y="96">activating</text><text x="18" y="38">▼ delegate</text><rect class="cell f" x="144" y="52" width="128" height="56" style="stroke:var(--amber)"/><text class="t-hi" x="154" y="76">EPOCH 101</text><text class="t-am" x="154" y="96">earning</text><rect class="cell f" x="280" y="52" width="128" height="56" style="stroke:var(--amber)"/><text class="t-hi" x="290" y="76">EPOCH 102</text><text class="t-am" x="290" y="96">earning</text><rect class="cell" x="416" y="52" width="128" height="56"/><text class="t-hi" x="426" y="76">EPOCH 103</text><text class="t-dim" x="426" y="96">deactivating</text><text x="426" y="38">▼ deactivate</text><rect class="cell" x="552" y="52" width="128" height="56"/><text class="t-hi" x="562" y="76">EPOCH 104</text><text class="t-dim" x="562" y="96">inactive</text><text x="562" y="38">▼ withdraw</text><text x="360" y="150" text-anchor="middle">changes take effect at the boundary between epochs</text><text class="t-dim" x="360" y="172" text-anchor="middle">1 epoch = 432,000 slots, about one day</text></svg>
+        </div>
+        <figcaption>fig. 2: the life of a stake account, epoch by epoch.</figcaption>
+      </figure>
+
+      <p>After you delegate, the stake is <strong>activating</strong> until the next epoch begins, and only then starts
+        earning. When you want your SOL back, you first <strong>deactivate</strong> it, which also completes at the next epoch
+        boundary, and then you can withdraw it to your wallet. The network also limits how much stake can activate or
+        deactivate in a single epoch, so after very large movements, such as a big holder leaving, the wait can last a few
+        epochs longer.</p>
+      <div class="note">
+        <span class="t">[i] "insufficient funds" when withdrawing</span>
+        <p>If you try to withdraw while the stake is still deactivating, the wallet or the CLI returns an error that says
+          "insufficient funds". Your SOL is still there, but it stays staked until the epoch ends, so none of it can be
+          withdrawn yet. Wait for the next epoch and try again.</p>
+      </div>
+
+      <h2 id="s6" data-short="risks"><span class="n">06</span>Risks</h2>
+      <p>Solana does not currently <strong>slash</strong> stake, that is, it does not destroy part of a validator's stake as a
+        punishment for misbehaving. The idea is being researched, and if it is ever activated, the choice of validator would
+        become a risk to your funds and not only to your rewards. Today the risks are smaller but real:</p>
+      <ul>
+        <li><strong>Missed rewards.</strong> If your validator is offline, votes badly or does not pay its admission ticket,
+          you earn little or nothing for that epoch.</li>
+        <li><strong>Commission changes.</strong> A validator can raise its commission. Check it from time to time.</li>
+        <li><strong>Time to exit.</strong> Your SOL is unavailable while it deactivates, which matters if you need it quickly.</li>
+        <li><strong>Price.</strong> Rewards are paid in SOL, so their value in dollars moves with the price of SOL.</li>
+      </ul>
+      <p>There is also <strong>liquid staking</strong>: you deposit SOL in a stake pool, a program that delegates it across
+        many validators, and you receive a token that represents your share, such as JitoSOL or mSOL. You can sell or use that
+        token without waiting for an epoch, but you add the risk of the pool's program and depend on how it chooses validators.</p>
+
+      <h2 id="s7" data-short="choosing a validator"><span class="n">07</span>Choosing a validator</h2>
+      <p>Your choice of validator also shapes the network itself, because stake decides who controls consensus. The usual
+        measure is the <strong>Nakamoto coefficient</strong>: the smallest number of validators that together hold a third of
+        the stake, enough to stop the network from finalizing blocks if they stopped together. In October 2026 Solana's was 18.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 162" role="img" aria-labelledby="f63-t"><title id="f63-t">Bar: the 18 largest validators hold one third of all stake, and roughly 630 others hold the remaining two thirds.</title><defs><marker id="f63-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f63-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f63-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><text class="t-dim" x="24" y="20">all active stake on Solana</text><rect class="cell f" x="24" y="30" width="224" height="40" style="stroke:var(--amber)"/><rect class="cell" x="248" y="30" width="448" height="40"/><text class="t-am" x="36" y="55">the 18 largest</text><text x="260" y="55">the other ~630 validators</text><text class="t-dim" x="24" y="92">1/3 of the stake</text><text class="t-dim" x="260" y="92">2/3 of the stake</text><text x="360" y="130" text-anchor="middle">if those 18 stopped together, the network could not finalize blocks</text><text class="t-dim" x="360" y="152" text-anchor="middle">Nakamoto coefficient = 18</text></svg>
+        </div>
+        <figcaption>fig. 3: how concentrated Solana’s stake is (Solana Compass, October 2026).</figcaption>
+      </figure>
+
+      <p>Every delegation to one of the largest validators makes that group a little more powerful, while every delegation to a
+        smaller, well-run validator spreads the weight. When you choose, look at:</p>
+      <ol>
+        <li><strong>Performance:</strong> how reliably it votes and produces blocks. Validator dashboards show it as vote
+          credits or uptime.</li>
+        <li><strong>Commission:</strong> a reasonable, stable percentage. Running a validator costs money, and a validator
+          that charges 0% to attract stake may not be sustainable.</li>
+        <li><strong>Size:</strong> preferably outside the group of largest validators that together hold a third of the stake,
+          often called the superminority.</li>
+        <li><strong>Diversity:</strong> a client, a country and a data center that are less common, so that a single bug or
+          outage affects less of the network.</li>
+      </ol>
+
+      <h2 id="s8" data-short="summary"><span class="n">08</span>Summary</h2>
+      <p>Validators produce blocks and vote, with a weight that depends on the stake delegated to them. Staking lets you
+        lend that weight to a validator without giving up your SOL, in exchange for a share of the new SOL created every
+        epoch. Choosing a good validator outside the largest group earns you rewards and keeps the network decentralized.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Concept</th><th>In one sentence</th></tr></thead>
+        <tbody>
+          <tr><td>Validator</td><td>A server that votes on blocks and produces them when it is the leader.</td></tr>
+          <tr><td>Epoch</td><td>432,000 slots, about one day. It is the unit for rewards and stake changes.</td></tr>
+          <tr><td>Stake account</td><td>The account that holds your delegated SOL, controlled by your authorities.</td></tr>
+          <tr><td>Commission</td><td>The share of inflation rewards a validator keeps.</td></tr>
+          <tr><td>Validator Admission Ticket</td><td>0.8 SOL per epoch, burned, that each validator pays to take part.</td></tr>
+          <tr><td>Slashing</td><td>Destroying stake as a punishment. Not active on Solana today.</td></tr>
+          <tr><td>Liquid staking</td><td>Staking through a pool that gives you a tradable token in return.</td></tr>
+          <tr><td>Nakamoto coefficient</td><td>The fewest validators holding a third of the stake. 18 in October 2026.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Sources</h3>
+      <ul class="meta">
+        <li><a href="https://solana.com/upgrades/alpenglow" target="_blank" rel="noopener">Solana: Alpenglow and the Validator Admission Ticket</a></li>
+        <li><a href="https://solanacompass.com/news/fidelitys-fcat-finds-solana-more-reliable-with-stake-hosting-and-client-software-still-concentrated" target="_blank" rel="noopener">Solana Compass: Nakamoto coefficient of 18 (October 2026)</a></li>
+        <li><a href="https://www.thetie.io/insights/solana-disinflation-vote-staking-yield" target="_blank" rel="noopener">The Tie: inflation and staking reward rate after the disinflation vote</a></li>
+        <li><a href="https://solanacompass.com/news/simd-0607-must-merge-before-solanas-disinflation-rate-can-activate-anza-says" target="_blank" rel="noopener">Solana Compass: status of the disinflation change</a></li>
+        <li><a href="https://everstake.one/resources/blog/solana-slashing-validators-delegators" target="_blank" rel="noopener">Everstake: slashing on Solana</a></li>
+        <li><a href="https://solana.com/docs/core/fees/fee-structure" target="_blank" rel="noopener">Solana: fee structure</a></li>
+      </ul>
+    </article>
+
+    <hr>
+    <nav class="pager" id="pager" aria-label="Previous and next"></nav>
+    <hr>
+    <footer>solana field manual · last updated 18 Nov 2026</footer>
+  </main>
+</div>
+
+<script src="../data/articles.js" defer></script>
+<script src="../js/helpers/clock.js" defer></script>
+<script src="../js/helpers/sidebar.js" defer></script>
+<script src="../js/helpers/scroll-spy.js" defer></script>
+<script src="../js/helpers/copy-code.js" defer></script>
+<script src="../js/helpers/glossary-filter.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>

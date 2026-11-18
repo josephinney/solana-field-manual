@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What is Solana? · Solana Field Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/components.css">
+</head>
+<body data-root="../" data-page="01">
+<div class="layout">
+  <aside class="side" id="sidebar" aria-label="Site index"></aside>
+
+  <main class="content">
+    <article class="article">
+
+    <p class="meta">~/manual/01-what-is-solana.txt</p>
+    <h1>What is Solana?</h1>
+    <p class="lead">An introduction for readers who have never worked with a blockchain.</p>
+    <ul class="meta-list">
+      <li><span class="k">level</span>beginner</li>
+      <li><span class="k">prerequisites</span>none</li>
+      <li><span class="k">reading time</span>~9 min</li>
+      <li><span class="k">facts verified</span>17 Nov 2026</li>
+    </ul>
+    <hr>
+
+    <h2 id="s1" data-short="blockchain"><span class="n">01</span>What is a blockchain?</h2>
+    <p>A <strong>blockchain</strong> is a database that is not stored on a single server. Thousands of computers keep
+      <strong>an identical copy</strong> and keep it synchronized.</p>
+    <p>Take a spreadsheet that records money transfers:</p>
+    <div class="tbl"><table>
+      <thead><tr><th>#</th><th>From</th><th>To</th><th>Amount</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Ana</td><td>Luis</td><td>10</td></tr>
+        <tr><td>2</td><td>Luis</td><td>Marta</td><td>4</td></tr>
+        <tr><td>3</td><td>Marta</td><td>Ana</td><td>1</td></tr>
+      </tbody>
+    </table></div>
+    <p>At a bank, this table lives on the bank's servers and only the bank can change it. On a blockchain:</p>
+    <ul>
+      <li>Every computer in the network (called a <strong>node</strong>) has a copy of the table.</li>
+      <li>To add a new row, the network has to accept it under rules that every node knows.</li>
+      <li>Once a row is accepted, it <strong>cannot be edited or deleted</strong>.</li>
+    </ul>
+
+    <h3>Why is it called a chain of blocks?</h3>
+    <p>Transactions are grouped into <strong>blocks</strong>. Each block stores the <strong>hash</strong> of the previous
+      block. A hash is a fixed-length code calculated from some data: if the data changes by even one character, the hash
+      changes completely.</p>
+
+    <figure class="fig">
+      <div class="wrap">
+        <svg viewBox="0 0 720 336" role="img" aria-labelledby="fig1-t">
+          <title id="fig1-t">Three blocks linked by hash. When block 1 is edited its hash changes from a1 to 3e and the link from block 2 breaks.</title>
+          <defs>
+            <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker>
+          </defs>
+
+          <!-- row 1: valid chain -->
+          <text class="t-dim" x="10" y="16">valid chain</text>
+          <g>
+            <rect class="box" x="10" y="28" width="180" height="112"/>
+            <text class="t-hi" x="24" y="52">BLOCK 1</text>
+            <line class="sep" x1="10" y1="62" x2="190" y2="62"/>
+            <text x="24" y="84">prev_hash: —</text>
+            <text x="24" y="106">txs: [1, 2]</text>
+            <text x="24" y="128">hash: <tspan class="t-am">a1</tspan></text>
+          </g>
+          <g>
+            <rect class="box" x="270" y="28" width="180" height="112"/>
+            <text class="t-hi" x="284" y="52">BLOCK 2</text>
+            <line class="sep" x1="270" y1="62" x2="450" y2="62"/>
+            <text x="284" y="84">prev_hash: <tspan class="t-am">a1</tspan></text>
+            <text x="284" y="106">txs: [3, 4, 5]</text>
+            <text x="284" y="128">hash: <tspan class="t-am">f7</tspan></text>
+          </g>
+          <g>
+            <rect class="box" x="530" y="28" width="180" height="112"/>
+            <text class="t-hi" x="544" y="52">BLOCK 3</text>
+            <line class="sep" x1="530" y1="62" x2="710" y2="62"/>
+            <text x="544" y="84">prev_hash: <tspan class="t-am">f7</tspan></text>
+            <text x="544" y="106">txs: [6]</text>
+            <text x="544" y="128">hash: 9c</text>
+          </g>
+          <path class="ln" d="M270,80 H230 V124 H195" marker-end="url(#arr)"/>
+          <path class="ln" d="M530,80 H490 V124 H455" marker-end="url(#arr)"/>
+
+          <!-- row 2: tampered -->
+          <text class="t-dim" x="10" y="184">after someone edits transaction 1 in block 1</text>
+          <g>
+            <rect class="box" x="10" y="196" width="180" height="112"/>
+            <text class="t-hi" x="24" y="220">BLOCK 1</text>
+            <line class="sep" x1="10" y1="230" x2="190" y2="230"/>
+            <text x="24" y="252">prev_hash: —</text>
+            <text x="24" y="274">txs: [<tspan class="t-red">1'</tspan>, 2]</text>
+            <text x="24" y="296">hash: <tspan class="t-red">3e</tspan></text>
+          </g>
+          <g>
+            <rect class="box" x="270" y="196" width="180" height="112"/>
+            <text class="t-hi" x="284" y="220">BLOCK 2</text>
+            <line class="sep" x1="270" y1="230" x2="450" y2="230"/>
+            <text x="284" y="252">prev_hash: <tspan class="t-am">a1</tspan></text>
+            <text x="284" y="274">txs: [3, 4, 5]</text>
+            <text x="284" y="296">hash: <tspan class="t-am">f7</tspan></text>
+          </g>
+          <g>
+            <rect class="box" x="530" y="196" width="180" height="112"/>
+            <text class="t-hi" x="544" y="220">BLOCK 3</text>
+            <line class="sep" x1="530" y1="230" x2="710" y2="230"/>
+            <text x="544" y="252">prev_hash: <tspan class="t-am">f7</tspan></text>
+            <text x="544" y="274">txs: [6]</text>
+            <text x="544" y="296">hash: 9c</text>
+          </g>
+          <path class="ln-red" d="M270,248 H230 V292 H195"/>
+          <path class="ln-red solid" d="M223,263 L237,277 M237,263 L223,277"/>
+          <path class="ln" d="M530,248 H490 V292 H455" marker-end="url(#arr)"/>
+          <text class="t-red" x="230" y="330" text-anchor="middle">a1 ≠ 3e · link broken</text>
+        </svg>
+      </div>
+      <figcaption>fig. 1: each block points to the hash of the previous one. Editing block 1 changes its hash, so block 2 no longer matches.</figcaption>
+    </figure>
+
+    <p>This is how the network detects the change: block 2 still says <code>a1</code>, but block 1 now produces
+      <code>3e</code>. The other nodes still hold the original copy, so they reject the edited version.</p>
+
+    <h2 id="s2" data-short="what is solana"><span class="n">02</span>What is Solana?</h2>
+    <p><strong>Solana</strong> is a public blockchain. Besides recording money transfers, it can run
+      <strong>programs</strong> (code) directly on the network.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Property</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Native currency</td><td>SOL</td></tr>
+        <tr><td>Smallest unit</td><td>lamport (1 SOL = 1,000,000,000 lamports)</td></tr>
+        <tr><td>Slot time</td><td>200 ms: one chance to produce a block every 200 ms (400 ms until October 2026)</td></tr>
+        <tr><td>Finality target</td><td>~150 ms after a block is produced</td></tr>
+        <tr><td>Base fee</td><td>5,000 lamports per signature (0.000005 SOL)</td></tr>
+        <tr><td>Main language for programs</td><td>Rust</td></tr>
+      </tbody>
+    </table></div>
+    <p>The <strong>fee</strong> is what you pay the network to process your transaction. On Solana it is usually a
+      fraction of a US cent. <strong>Finality</strong> is the moment a transaction can no longer be reversed.</p>
+
+    <h2 id="s3" data-short="key concepts"><span class="n">03</span>Key concepts</h2>
+
+    <h3>3.1 Accounts</h3>
+    <p>On Solana <strong>everything is stored in accounts</strong>: balances, programs and application data. An account
+      looks like a file with these fields:</p>
+    <div class="code">
+      <div class="label"><span>json · example account</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>{
+  "address": "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+  "lamports": 1500000000,
+  "owner": "11111111111111111111111111111111",
+  "executable": false,
+  "data": []
+}</pre>
+    </div>
+    <ul>
+      <li><code>address</code>: unique identifier of the account.</li>
+      <li><code>lamports</code>: balance. Here 1,500,000,000 lamports = 1.5 SOL.</li>
+      <li><code>owner</code>: the program allowed to modify the account. <code>1111…1111</code> is the <strong>System
+        Program</strong>, the built-in program that handles SOL transfers.</li>
+      <li><code>executable</code>: <code>true</code> if the account contains a program.</li>
+      <li><code>data</code>: extra data. A simple wallet account has none.</li>
+    </ul>
+
+    <h3>3.2 Keys and addresses</h3>
+    <p>To use Solana you need a <strong>keypair</strong>:</p>
+    <ul>
+      <li><strong>Public key</strong>: your address. You can share it, like a bank account number.</li>
+      <li><strong>Private key</strong>: used to <strong>sign</strong> transactions and prove you are the owner.</li>
+    </ul>
+    <div class="note crit">
+      <span class="t">[!] warning</span>
+      <p>Anyone who has your private key controls your funds. Never share it. Support teams, apps and websites will never ask for it.</p>
+    </div>
+    <p>A <strong>wallet</strong> (for example Phantom or Solflare) is the app that stores your private key and signs for you.</p>
+
+    <h3>3.3 Transactions and instructions</h3>
+    <p>A <strong>transaction</strong> is a signed request for the network to do something. It contains one or more
+      <strong>instructions</strong>. Each instruction says:</p>
+    <ol>
+      <li>Which program to run.</li>
+      <li>Which accounts it will read or modify.</li>
+      <li>What data it receives.</li>
+    </ol>
+    <p>A transfer of 0.1 SOL from Ana to Luis:</p>
+    <div class="code"><pre>Transaction
+├── Signature: Ana
+└── Instruction
+    ├── Program:  System Program
+    ├── Accounts: [Ana (sender, writable), Luis (receiver, writable)]
+    └── Data:     transfer 100,000,000 lamports</pre></div>
+
+    <h3>3.4 Programs</h3>
+    <p>A <strong>program</strong> is code deployed on Solana. Other blockchains call it a <em>smart contract</em>.
+      Programs can, for example, create a token, swap tokens or record who owns an NFT.</p>
+    <p>An important detail: <strong>Solana programs do not store their own state</strong>. Data lives in separate accounts
+      that the program reads and modifies. Because every transaction lists the accounts it will use in advance, the
+      network can run transactions that touch different accounts at the same time (section 04).</p>
+
+    <h3>3.5 Validators</h3>
+    <p><strong>Validators</strong> are the computers that process transactions, produce blocks and vote on blocks produced
+      by others. Their voting weight is proportional to their <strong>stake</strong>: the SOL locked with them, either their
+      own or delegated by other holders. Validators earn rewards for this work.</p>
+
+    <h2 id="s4" data-short="confirmations"><span class="n">04</span>How Solana confirms transactions quickly</h2>
+    <p>Three mechanisms work together.</p>
+
+    <h3>4.1 Leader schedule</h3>
+    <p>Time is divided into <strong>slots</strong> of 200 ms. For every slot, one validator is the <strong>leader</strong>:
+      the only one allowed to produce a block for that slot. The schedule is known in advance and each leader gets 4
+      consecutive slots, so transactions are sent directly to the upcoming leader.</p>
+
+    <figure class="fig">
+      <div class="wrap">
+        <svg viewBox="0 0 720 134" role="img" aria-labelledby="fig2-t">
+          <title id="fig2-t">Twelve slots of 200 ms. Validator V-17 leads slots 100 to 103, V-03 leads 104 to 107, V-42 leads 108 to 111.</title>
+          <text class="t-dim" x="24" y="16">slot</text>
+          <g>
+            <rect class="cell f" x="24" y="28" width="56" height="34"/><text x="52" y="50" text-anchor="middle">100</text>
+            <rect class="cell f" x="80" y="28" width="56" height="34"/><text x="108" y="50" text-anchor="middle">101</text>
+            <rect class="cell f" x="136" y="28" width="56" height="34"/><text x="164" y="50" text-anchor="middle">102</text>
+            <rect class="cell f" x="192" y="28" width="56" height="34"/><text x="220" y="50" text-anchor="middle">103</text>
+            <rect class="cell" x="248" y="28" width="56" height="34"/><text x="276" y="50" text-anchor="middle">104</text>
+            <rect class="cell" x="304" y="28" width="56" height="34"/><text x="332" y="50" text-anchor="middle">105</text>
+            <rect class="cell" x="360" y="28" width="56" height="34"/><text x="388" y="50" text-anchor="middle">106</text>
+            <rect class="cell" x="416" y="28" width="56" height="34"/><text x="444" y="50" text-anchor="middle">107</text>
+            <rect class="cell f" x="472" y="28" width="56" height="34"/><text x="500" y="50" text-anchor="middle">108</text>
+            <rect class="cell f" x="528" y="28" width="56" height="34"/><text x="556" y="50" text-anchor="middle">109</text>
+            <rect class="cell f" x="584" y="28" width="56" height="34"/><text x="612" y="50" text-anchor="middle">110</text>
+            <rect class="cell f" x="640" y="28" width="56" height="34"/><text x="668" y="50" text-anchor="middle">111</text>
+          </g>
+          <path class="ax" d="M28,70 V76 H244 V70"/>
+          <path class="ax" d="M252,70 V76 H468 V70"/>
+          <path class="ax" d="M476,70 V76 H692 V70"/>
+          <text x="136" y="94" text-anchor="middle">leader V-17</text>
+          <text x="360" y="94" text-anchor="middle">leader V-03</text>
+          <text x="584" y="94" text-anchor="middle">leader V-42</text>
+          <line class="ax" x1="24" y1="106" x2="696" y2="106"/>
+          <g>
+            <line class="ax" x1="24" y1="106" x2="24" y2="111"/><text class="t-dim" x="24" y="127" text-anchor="middle">0</text>
+            <line class="ax" x1="80" y1="106" x2="80" y2="111"/><text class="t-dim" x="80" y="127" text-anchor="middle">200</text>
+            <line class="ax" x1="136" y1="106" x2="136" y2="111"/><text class="t-dim" x="136" y="127" text-anchor="middle">400</text>
+            <line class="ax" x1="192" y1="106" x2="192" y2="111"/><text class="t-dim" x="192" y="127" text-anchor="middle">600</text>
+            <line class="ax" x1="248" y1="106" x2="248" y2="111"/><text class="t-dim" x="248" y="127" text-anchor="middle">800</text>
+            <line class="ax" x1="304" y1="106" x2="304" y2="111"/><text class="t-dim" x="304" y="127" text-anchor="middle">1000</text>
+            <line class="ax" x1="360" y1="106" x2="360" y2="111"/><text class="t-dim" x="360" y="127" text-anchor="middle">1200</text>
+            <line class="ax" x1="416" y1="106" x2="416" y2="111"/><text class="t-dim" x="416" y="127" text-anchor="middle">1400</text>
+            <line class="ax" x1="472" y1="106" x2="472" y2="111"/><text class="t-dim" x="472" y="127" text-anchor="middle">1600</text>
+            <line class="ax" x1="528" y1="106" x2="528" y2="111"/><text class="t-dim" x="528" y="127" text-anchor="middle">1800</text>
+            <line class="ax" x1="584" y1="106" x2="584" y2="111"/><text class="t-dim" x="584" y="127" text-anchor="middle">2000</text>
+            <line class="ax" x1="640" y1="106" x2="640" y2="111"/><text class="t-dim" x="640" y="127" text-anchor="middle">2200</text>
+            <line class="ax" x1="696" y1="106" x2="696" y2="111"/><text class="t-dim" x="696" y="127" text-anchor="middle">2400</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>fig. 2: each leader produces blocks for 4 consecutive slots. Time axis in milliseconds.</figcaption>
+    </figure>
+
+    <h3>4.2 Parallel execution</h3>
+    <p>Each transaction declares the accounts it will modify. Transactions that do not share writable accounts can run at
+      the same time on different CPU cores:</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Tx</th><th>Transfer</th><th>Writable accounts</th><th>Runs</th></tr></thead>
+      <tbody>
+        <tr><td>A</td><td>Ana → Luis</td><td>Ana, Luis</td><td>in parallel with B</td></tr>
+        <tr><td>B</td><td>Marta → Pedro</td><td>Marta, Pedro</td><td>in parallel with A</td></tr>
+        <tr><td>C</td><td>Luis → Marta</td><td>Luis, Marta</td><td>after A and B (shares accounts with both)</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>4.3 Voting with Alpenglow</h3>
+    <p>Since <strong>21 October 2026</strong>, Solana uses the <strong>Alpenglow</strong> consensus protocol. Its voting
+      component, <strong>Votor</strong>, works like this:</p>
+    <ol>
+      <li>Validators send their votes on a block <strong>directly to each other</strong>. Votes are no longer transactions
+        stored inside blocks.</li>
+      <li>Votes are combined into a <strong>certificate</strong>: compact proof that a given share of the stake voted for
+        the block.</li>
+      <li>If validators holding at least <strong>80%</strong> of the stake vote for the block in the first round, the block
+        is final.</li>
+      <li>If not, a second round with a <strong>60%</strong> threshold can finalize it.</li>
+    </ol>
+    <p>The target is about <strong>150 ms</strong> from block to finality. The previous protocol, TowerBFT, needed about
+      12.8 seconds.</p>
+    <div class="note warn">
+      <span class="t">[!] older tutorials are out of date</span>
+      <p>Guides written before October 2026 often describe <strong>Proof of History</strong> (PoH) as the core of Solana's
+        speed. PoH is a chain of SHA-256 hashes used as a clock to record the order of events. With Alpenglow, PoH no
+        longer paces block production. Those guides also give a 400 ms slot time, which is now 200 ms.</p>
+    </div>
+
+    <h2 id="s5" data-short="hands-on"><span class="n">05</span>Hands-on: your first transfer on devnet</h2>
+    <p>Solana runs several networks:</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Network</th><th>Use</th><th>Does SOL have real value?</th></tr></thead>
+      <tbody>
+        <tr><td>Mainnet</td><td>Production</td><td>Yes</td></tr>
+        <tr><td>Devnet</td><td>Testing and development</td><td>No</td></tr>
+      </tbody>
+    </table></div>
+    <p>We will use <strong>devnet</strong>, so you will not spend real money. First install the Solana CLI by following the
+      official guide: <a href="https://solana.com/docs/intro/installation" target="_blank" rel="noopener">solana.com/docs/intro/installation</a>.</p>
+
+    <h4>1. Create a keypair</h4>
+    <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>solana-keygen new --outfile ~/my-wallet.json</pre></div>
+
+    <h4>2. Point the CLI to devnet and to your wallet</h4>
+    <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>solana config set --url devnet --keypair ~/my-wallet.json</pre></div>
+
+    <h4>3. Show your address (public key)</h4>
+    <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>solana address</pre></div>
+
+    <h4>4. Request test SOL</h4>
+    <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>solana airdrop 1</pre></div>
+    <div class="note">
+      <span class="t">[i] if the airdrop fails</span>
+      <p>The devnet faucet limits how many requests you can make. Use the web faucet instead:
+        <a href="https://faucet.solana.com" target="_blank" rel="noopener">faucet.solana.com</a>.</p>
+    </div>
+
+    <h4>5. Check your balance</h4>
+    <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>solana balance
+<span class="c"># 1 SOL</span></pre></div>
+
+    <h4>6. Send 0.1 SOL to another address</h4>
+    <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>solana transfer &lt;RECIPIENT_ADDRESS&gt; 0.1 --allow-unfunded-recipient</pre></div>
+    <p>The <code>--allow-unfunded-recipient</code> option lets you send SOL to an address that does not exist on the
+      network yet.</p>
+    <p>The command returns a <strong>transaction signature</strong>. Search for it in the
+      <a href="https://explorer.solana.com/?cluster=devnet" target="_blank" rel="noopener">Solana Explorer (devnet)</a> to see
+      the transaction, the accounts involved and the fee paid.</p>
+
+    <h2 id="s6" data-short="summary"><span class="n">06</span>Summary</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Concept</th><th>In one sentence</th></tr></thead>
+      <tbody>
+        <tr><td>Blockchain</td><td>A database replicated across many computers where records cannot be modified.</td></tr>
+        <tr><td>Solana</td><td>A public blockchain focused on speed and low fees.</td></tr>
+        <tr><td>SOL / lamport</td><td>Native currency and its smallest unit (1 SOL = 10⁹ lamports).</td></tr>
+        <tr><td>Account</td><td>The unit where everything is stored: balances, data and programs.</td></tr>
+        <tr><td>Public / private key</td><td>Your address / your signature. The private key is never shared.</td></tr>
+        <tr><td>Transaction</td><td>A signed request with one or more instructions.</td></tr>
+        <tr><td>Program</td><td>Code that runs on the network and modifies accounts.</td></tr>
+        <tr><td>Validator</td><td>A computer that produces blocks and votes on them.</td></tr>
+        <tr><td>Alpenglow</td><td>Solana's consensus protocol since October 2026, targeting ~150 ms finality.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Further reading</h3>
+    <ul>
+      <li><a href="https://solana.com/docs" target="_blank" rel="noopener">solana.com/docs</a>: official documentation</li>
+      <li><a href="https://solana.com/upgrades/alpenglow" target="_blank" rel="noopener">solana.com/upgrades/alpenglow</a>: the Alpenglow upgrade</li>
+      <li><a href="https://explorer.solana.com" target="_blank" rel="noopener">explorer.solana.com</a>: explore real transactions</li>
+    </ul>
+    </article>
+
+    <hr>
+    <nav class="pager" id="pager" aria-label="Previous and next"></nav>
+    <hr>
+    <footer>solana field manual · last updated 17 Nov 2026</footer>
+  </main>
+</div>
+
+<script src="../data/articles.js" defer></script>
+<script src="../js/helpers/clock.js" defer></script>
+<script src="../js/helpers/sidebar.js" defer></script>
+<script src="../js/helpers/scroll-spy.js" defer></script>
+<script src="../js/helpers/copy-code.js" defer></script>
+<script src="../js/helpers/glossary-filter.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>

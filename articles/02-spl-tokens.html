@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tokens on Solana · Solana Field Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/components.css">
+</head>
+<body data-root="../" data-page="02">
+<div class="layout">
+  <aside class="side" id="sidebar" aria-label="Site index"></aside>
+
+  <main class="content">
+    <article class="article">
+      <p class="meta">~/manual/02-spl-tokens.txt</p>
+      <h1>Tokens on Solana</h1>
+      <p class="lead">You have 100 USDC in your wallet. Where are they, exactly? The short answer is that they are not
+        inside the wallet at all, and understanding why explains how every token on Solana works.</p>
+      <ul class="meta-list">
+        <li><span class="k">level</span>beginner</li>
+        <li><span class="k">prerequisites</span>basic Solana concepts (accounts, programs)</li>
+        <li><span class="k">reading time</span>~6 min</li>
+        <li><span class="k">facts verified</span>18 Nov 2026</li>
+      </ul>
+      <hr>
+
+      <h2 id="s1" data-short="what a token is"><span class="n">01</span>What a token is</h2>
+      <p>A <strong>token</strong> is a digital asset that lives on a blockchain: a dollar stablecoin like USDC, points in a
+        game, shares in a project or a ticket to an event. On Solana, tokens are often called <strong>SPL tokens</strong>,
+        after the Solana Program Library where the programs that manage them were first published.</p>
+      <p>A token does not travel from wallet to wallet like a file. It is a record kept by a program, the
+        <strong>Token Program</strong>, and the easiest way to picture it is a spreadsheet. The top of the sheet describes
+        the token, and each row below says who holds how much.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 224" role="img" aria-labelledby="f21-t"><title id="f21-t">A token works like a ledger: the mint defines the token and each token account is one row with an owner and an amount. The supply is the sum of all rows.</title><defs><marker id="f21-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f21-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f21-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><text class="t-dim" x="8" y="20">the token's definition</text><rect class="box" x="8" y="30" width="240" height="144"/><text class="t-hi " x="20" y="54">MINT · DEMO</text><line class="sep" x1="8" y1="64" x2="248" y2="64"/><text x="20" y="86">decimals: 6</text><text x="20" y="108">supply: 125.5</text><text x="20" y="130">mint authority: 7xKX…</text><text x="20" y="152">freeze authority: 7xKX…</text><text class="t-dim" x="320" y="20">one row per holder: token accounts</text><rect class="box" x="320" y="30" width="392" height="138"/><text class="t-dim" x="334" y="50">ACCOUNT</text><text class="t-dim" x="490" y="50">OWNER</text><text class="t-dim" x="600" y="50">AMOUNT</text><line class="sep" x1="320" y1="60" x2="712" y2="60"/><text x="334" y="83">8fK2…Qe</text><text x="490" y="83">Ana</text><text x="600" y="83">100.0</text><path class="ln" d="M320,78 H284 V102 H249" marker-end="url(#f21-am)"/><line class="sep" x1="320" y1="96" x2="712" y2="96"/><text x="334" y="119">3Hq9…Lm</text><text x="490" y="119">Luis</text><text x="600" y="119">25.5</text><path class="ln" d="M320,114 H284 V102 H249" marker-end="url(#f21-am)"/><line class="sep" x1="320" y1="132" x2="712" y2="132"/><text x="334" y="155">Bv71…Xp</text><text x="490" y="155">Marta</text><text x="600" y="155">0.0</text><path class="ln" d="M320,150 H284 V102 H249" marker-end="url(#f21-am)"/><text x="360" y="214" text-anchor="middle">supply <tspan class="t-am">125.5</tspan> = 100.0 + 25.5 + 0.0</text></svg>
+        </div>
+        <figcaption>fig. 1: a token is a record kept by the Token Program. The mint defines it; token accounts hold the balances.</figcaption>
+      </figure>
+
+      <p>On Solana both parts are accounts. The description of the token is the <strong>mint account</strong>, and each
+        row is a <strong>token account</strong>. Sending tokens means asking the Token Program to subtract from one row and
+        add to another; nothing else moves.</p>
+
+      <h2 id="s2" data-short="the mint"><span class="n">02</span>The mint account</h2>
+      <p>Every token has exactly one mint account, and its address is how the token is identified. Two tokens can share
+        a name or a logo, but never a mint address, which is why wallets and exchanges always check it. USDC on Solana,
+        for example, is the mint <code>EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v</code>.</p>
+      <p>The mint stores four pieces of information:</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Field</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td>supply</td><td>How many units exist in total, the sum of every token account of this mint.</td></tr>
+          <tr><td>decimals</td><td>How many parts one unit can be split into (section 04).</td></tr>
+          <tr><td>mint authority</td><td>The address allowed to create new units, if any.</td></tr>
+          <tr><td>freeze authority</td><td>The address allowed to freeze token accounts, if any.</td></tr>
+        </tbody>
+      </table></div>
+      <p>The mint holds no balances itself. It only defines the token and keeps count of how many units exist.</p>
+
+      <h2 id="s3" data-short="token accounts"><span class="n">03</span>Token accounts</h2>
+      <p>A token account holds the balance of one token for one owner. Its main fields are the mint it belongs to, the
+        owner who can move the funds, and the amount. Because each token account belongs to a single mint, a wallet that
+        holds three different tokens has three token accounts, plus its regular account for SOL.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 232" role="img" aria-labelledby="f22-t"><title id="f22-t">Ana's wallet holds SOL and owns one token account per token: one for USDC and one for DEMO. Each token account points to the mint of its token.</title><defs><marker id="f22-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f22-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f22-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><rect class="box" x="8" y="76" width="150" height="64"/><text class="t-hi" x="20" y="106.0">ANA</text><text class="t-dim" x="20" y="124.0">wallet · 1.2 SOL</text><rect class="box" x="250" y="24" width="210" height="60"/><text class="t-hi" x="262" y="52.0">USDC ACCOUNT</text><text class="t-dim" x="262" y="70.0">owner: Ana · 100</text><rect class="box" x="250" y="132" width="210" height="60"/><text class="t-hi" x="262" y="160.0">DEMO ACCOUNT</text><text class="t-dim" x="262" y="178.0">owner: Ana · 40</text><rect class="box" x="560" y="24" width="152" height="60"/><text class="t-hi" x="572" y="52.0">USDC MINT</text><text class="t-dim" x="572" y="70.0">decimals: 6</text><rect class="box" x="560" y="132" width="152" height="60"/><text class="t-hi" x="572" y="160.0">DEMO MINT</text><text class="t-dim" x="572" y="178.0">decimals: 6</text><path class="ln-fg dash" d="M158,108 H204 V54 H249" marker-end="url(#f22-fg)"/><path class="ln-fg dash" d="M204,108 V162 H249" marker-end="url(#f22-fg)"/><text class="t-dim" x="170" y="100">owns</text><path class="ln" d="M460,54 H559" marker-end="url(#f22-am)"/><path class="ln" d="M460,162 H559" marker-end="url(#f22-am)"/><text class="t-dim" x="510" y="46" text-anchor="middle">of token</text><text class="t-dim" x="510" y="154" text-anchor="middle">of token</text><text class="t-dim" x="360" y="222" text-anchor="middle">each token account address is derived from: wallet address + mint address</text></svg>
+        </div>
+        <figcaption>fig. 2: one wallet, one token account per token.</figcaption>
+      </figure>
+
+      <p>So the answer to the opening question is this: your 100 USDC are recorded in a token account whose owner is your
+        wallet. The wallet holds the private key that authorizes moving them, and that is why losing the key means losing
+        the tokens, even though they were never stored on your device.</p>
+
+      <h3>Associated token accounts</h3>
+      <p>If anyone could open token accounts at random addresses, sending tokens would require asking the recipient which
+        account to use. To avoid that, there is a standard address for each pair of wallet and token, the
+        <strong>associated token account</strong>. It is calculated from the wallet address and the mint address, so
+        anyone can work out where your USDC account is from your wallet address alone. When you send tokens to a wallet,
+        your wallet app calculates this address and uses it.</p>
+
+      <h3>Creating an account costs a refundable deposit</h3>
+      <p>Every account on Solana takes up space on every validator, so it must hold a minimum balance of SOL, proportional
+        to its size, called <strong>rent</strong>. Despite the name, it works as a deposit rather than a fee: when the
+        account is closed, the SOL is returned in full. For a token account it amounts to a few cents or less, and the
+        network has been reducing it in stages during 2026.</p>
+      <p>This is why the first time someone receives a token they have never held, somebody has to pay to create their
+        token account. Usually it is the sender, and wallet apps do it automatically.</p>
+
+      <h2 id="s4" data-short="decimals"><span class="n">04</span>Decimals</h2>
+      <p>Token accounts store amounts as whole numbers, never as fractions. To allow amounts like 25.5, each mint declares
+        how many decimal places its token uses, and the number stored is the amount multiplied by ten to that power.
+        USDC uses 6 decimals, so 100 USDC is stored as 100,000,000, and 0.01 USDC is stored as 10,000.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Decimals</th><th>Stored value 1,000,000 means</th><th>Typical use</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>1,000,000 units</td><td>tickets, items that cannot be split</td></tr>
+          <tr><td>2</td><td>10,000.00 units</td><td>amounts that work like cents</td></tr>
+          <tr><td>6</td><td>1.000000 units</td><td>USDC and most stablecoins</td></tr>
+          <tr><td>9</td><td>0.001000000 units</td><td>the same precision as SOL and its lamports</td></tr>
+        </tbody>
+      </table></div>
+      <p>Wallets and explorers divide by the right power of ten before showing you the amount, so you rarely see the stored
+        number. It matters when you write code: sending "100" to a program that expects stored units would send 0.0001 USDC.</p>
+
+      <h2 id="s5" data-short="authorities"><span class="n">05</span>Authorities: who can create and freeze</h2>
+      <p>The two authorities stored in the mint decide how much control its creator keeps over the token.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 210" role="img" aria-labelledby="f23-t"><title id="f23-t">The mint authority can create new units, which raises the supply. The freeze authority can freeze a token account so it cannot send or receive.</title><defs><marker id="f23-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f23-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f23-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><text class="t-dim" x="8" y="18">mint authority: creates new units</text><rect class="box" x="8" y="28" width="180" height="60"/><text class="t-hi" x="20" y="56.0">YOUR WALLET</text><text class="t-dim" x="20" y="74.0">mint authority</text><rect class="box" x="284" y="28" width="180" height="60"/><text class="t-hi" x="296" y="56.0">MINT</text><text class="t-dim" x="296" y="74.0">supply: 1000 → 1500</text><rect class="box" x="552" y="28" width="160" height="60"/><text class="t-hi" x="564" y="56.0">ACCOUNT</text><text class="t-dim" x="564" y="74.0">amount: +500</text><path class="ln-fg" d="M188,58 H283" marker-end="url(#f23-fg)"/><path class="ln-fg" d="M464,58 H551" marker-end="url(#f23-fg)"/><text class="t-am" x="236" y="50" text-anchor="middle">mint 500</text><text class="t-dim" x="8" y="128">freeze authority: blocks an account</text><rect class="box" x="8" y="138" width="180" height="60"/><text class="t-hi" x="20" y="166.0">YOUR WALLET</text><text class="t-dim" x="20" y="184.0">freeze authority</text><rect class="box red" x="284" y="138" width="180" height="60"/><text class="t-hi" x="296" y="166.0">ACCOUNT</text><text class="t-red" x="296" y="184.0">state: frozen</text><path class="ln-fg" d="M188,168 H283" marker-end="url(#f23-fg)"/><text class="t-red" x="236" y="160" text-anchor="middle">freeze</text><path class="ln-red solid" d="M501,161 L515,175 M515,161 L501,175"/><text class="t-red" x="530" y="173">cannot send or receive</text></svg>
+        </div>
+        <figcaption>fig. 3: what each authority can do.</figcaption>
+      </figure>
+
+      <p>The <strong>mint authority</strong> can create new units at any time and assign them to any token account, which
+        raises the supply. The <strong>freeze authority</strong> can freeze any token account of that mint, and a frozen
+        account can neither send nor receive the token until the authority unfreezes it.</p>
+      <p>Each authority can be handed to another address or removed for good. Removing the mint authority fixes the supply
+        forever, since nobody can create more units afterwards, and many projects do exactly that to show their holders
+        that the supply cannot be inflated. Removing the freeze authority guarantees that no account will ever be blocked.</p>
+      <p>USDC keeps both. Circle creates new USDC when someone deposits dollars with it and removes USDC when someone
+        redeems them, so it needs the mint authority. It keeps the freeze authority to comply with legal orders, which is
+        how it can freeze the USDC held at a specific address. Before trusting a token, it is worth checking who holds these
+        two authorities: any explorer shows them on the token's page.</p>
+
+      <h2 id="s6" data-short="two programs"><span class="n">06</span>Two token programs</h2>
+      <p>Solana has two programs that manage tokens. The original <strong>Token Program</strong> covers the basics
+        described so far. The newer <strong>Token Extensions Program</strong>, also known as Token-2022, does the same and
+        adds optional features, called extensions, that a token enables when it is created:</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Extension</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>metadata</td><td>Stores the name, symbol and image link inside the mint itself.</td></tr>
+          <tr><td>transfer fee</td><td>Keeps a percentage of every transfer for the token's creator.</td></tr>
+          <tr><td>non-transferable</td><td>Tokens cannot be moved once received, useful for certificates or badges.</td></tr>
+          <tr><td>default account state</td><td>New token accounts start frozen until the issuer approves them.</td></tr>
+          <tr><td>confidential transfers</td><td>Hides transfer amounts from everyone except the parties involved.</td></tr>
+        </tbody>
+      </table></div>
+      <p>The two programs have different addresses, <code>TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA</code> for the
+        original and <code>TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb</code> for Token-2022, and every mint belongs to
+        one of them. Most established tokens, USDC included, use the original program.</p>
+
+      <h2 id="s7" data-short="summary"><span class="n">07</span>Summary</h2>
+      <p>A token on Solana is a record kept by a token program. Its mint account defines it, with its supply, its decimals
+        and its two authorities, and each holder's balance lives in a separate token account owned by their wallet.
+        Your wallet never contains the tokens; it holds the key that allows you to move them.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Concept</th><th>In one sentence</th></tr></thead>
+        <tbody>
+          <tr><td>Mint account</td><td>Defines a token: supply, decimals, mint and freeze authorities.</td></tr>
+          <tr><td>Token account</td><td>Holds one owner's balance of one token.</td></tr>
+          <tr><td>Associated token account</td><td>The standard token account address for a wallet and a mint.</td></tr>
+          <tr><td>Rent</td><td>A refundable SOL deposit that every account must hold.</td></tr>
+          <tr><td>Decimals</td><td>How many parts one unit can be split into.</td></tr>
+          <tr><td>Mint authority</td><td>Can create new units. Removing it fixes the supply.</td></tr>
+          <tr><td>Freeze authority</td><td>Can freeze token accounts so they cannot send or receive.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Sources</h3>
+      <ul class="meta">
+        <li><a href="https://solana.com/docs/references/spl-token-cli" target="_blank" rel="noopener">Solana: SPL Token CLI reference</a></li>
+        <li><a href="https://spl.solana.com/token-2022/extensions" target="_blank" rel="noopener">Solana Program Library: Token-2022 extensions</a></li>
+        <li><a href="https://solana.com/upgrades/reduced-rent" target="_blank" rel="noopener">Solana: reduced rent</a></li>
+      </ul>
+    </article>
+
+    <hr>
+    <nav class="pager" id="pager" aria-label="Previous and next"></nav>
+    <hr>
+    <footer>solana field manual · last updated 18 Nov 2026</footer>
+  </main>
+</div>
+
+<script src="../data/articles.js" defer></script>
+<script src="../js/helpers/clock.js" defer></script>
+<script src="../js/helpers/sidebar.js" defer></script>
+<script src="../js/helpers/scroll-spy.js" defer></script>
+<script src="../js/helpers/copy-code.js" defer></script>
+<script src="../js/helpers/glossary-filter.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>

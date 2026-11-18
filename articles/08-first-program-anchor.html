@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your First Program with Anchor · Solana Field Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/components.css">
+</head>
+<body data-root="../" data-page="08">
+<div class="layout">
+  <aside class="side" id="sidebar" aria-label="Site index"></aside>
+
+  <main class="content">
+    <article class="article">
+      <p class="meta">~/manual/08-first-program-anchor.txt</p>
+      <h1>Your first program with Anchor</h1>
+      <p class="lead">In this hands-on guide you write a small Solana program, a counter that each user can increase, test
+        it on your computer, deploy it to devnet and call it from the terminal. Every part of the code is explained, so you
+        do not need to know Rust beforehand.</p>
+      <ul class="meta-list">
+        <li><span class="k">level</span>beginner</li>
+        <li><span class="k">prerequisites</span>a terminal on Linux, macOS or Windows with WSL</li>
+        <li><span class="k">time</span>~30 min</li>
+        <li><span class="k">tools</span>Anchor 1.2.2, Solana CLI, Node.js</li>
+        <li><span class="k">facts verified</span>18 Nov 2026</li>
+      </ul>
+      <hr>
+
+      <h2 id="s1" data-short="what we build"><span class="n">01</span>What we are going to build</h2>
+      <p>The program has two instructions. <code>initialize</code> creates a counter for the user who calls it, starting at
+        zero, and <code>increment</code> adds one to it. Each user gets their own counter, stored in an account whose address
+        is a PDA calculated from the word <code>"counter"</code> and the user's wallet address. That way anyone can find a
+        user's counter, and only that user can increase it.</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 232" role="img" aria-labelledby="f81-t"><title id="f81-t">You call the counter program. initialize creates your counter account, a PDA of counter and your wallet address, and increment adds one to it.</title><defs><marker id="f81-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f81-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f81-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><rect class="box" x="8" y="92" width="140" height="64"/><text class="t-hi" x="20" y="122.0">YOU</text><text class="t-dim" x="20" y="140.0">wallet</text><rect class="box" x="236" y="30" width="230" height="188"/><text class="t-hi " x="248" y="54">COUNTER PROGRAM</text><line class="sep" x1="236" y1="64" x2="466" y2="64"/><text x="248" y="86">initialize</text><text x="248" y="108">  creates your counter</text><text x="248" y="130"></text><text x="248" y="152">increment</text><text x="248" y="174">  adds 1 to it</text><rect class="box" x="530" y="76" width="182" height="96"/><text class="t-hi " x="542" y="100">YOUR COUNTER</text><line class="sep" x1="530" y1="110" x2="712" y2="110"/><text x="542" y="132">count: 0 → 1 → 2</text><path class="ln-fg" d="M148,124 H235" marker-end="url(#f81-fg)"/><text class="t-dim" x="192" y="116" text-anchor="middle">calls</text><path class="ln" d="M466,124 H529" marker-end="url(#f81-am)"/><text class="t-am" x="498" y="116" text-anchor="middle">writes</text><text class="t-dim" x="621" y="196" text-anchor="middle">PDA of</text><text class="t-dim" x="621" y="214" text-anchor="middle">["counter", wallet]</text></svg>
+        </div>
+        <figcaption>fig. 1: what we are building.</figcaption>
+      </figure>
+
+      <p>We will use <strong>Anchor</strong>, the most widely used framework for writing Solana programs. It writes most of
+        the repetitive code for you, especially the checks on the accounts each instruction receives, and it provides the
+        commands to build, test and deploy.</p>
+
+      <h2 id="s2" data-short="install"><span class="n">02</span>Install the tools</h2>
+      <p>The Solana documentation offers a single command that installs everything you need: Rust, the Solana CLI, Anchor,
+        Surfpool (a local Solana network for testing), Node.js and Yarn. On Windows, run it inside WSL.</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev | bash</pre></div>
+      <p>When it finishes, close the terminal, open a new one and check the versions:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>anchor --version
+solana --version</pre></div>
+      <p>This guide uses Anchor 1.2.2. If you see a different 1.x version, the steps should still work. If you have an older
+        version such as 0.31 or 0.32, update it, because the project templates changed in 1.0.</p>
+      <p>You also need a wallet with some SOL on devnet. If you do not have one, create it and request test SOL:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>solana-keygen new
+solana config set --url devnet
+solana airdrop 2</pre></div>
+      <div class="note">
+        <span class="t">[i] if the airdrop fails</span>
+        <p>The devnet faucet limits how many requests you can make. Use the web faucet at
+          <a href="https://faucet.solana.com" target="_blank" rel="noopener">faucet.solana.com</a> instead. You will need
+          about 2 SOL for the deploy in section 07.</p>
+      </div>
+
+      <h2 id="s3" data-short="create the project"><span class="n">03</span>Create the project</h2>
+      <p>Anchor creates the whole project structure with one command:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>anchor init counter --template single --test-template mocha
+cd counter</pre></div>
+      <p>The two options are there to keep this first project simple. <code>--template single</code> puts the whole program in
+        one file, which is easier to read from top to bottom. <code>--test-template mocha</code> writes the test in
+        TypeScript, so the same file can test the program on your computer and later call it on devnet.</p>
+
+      <div class="code">
+        <div class="label"><span>project tree</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>counter/
+├── Anchor.toml              ← project settings: network, wallet, program ID
+├── programs/
+│   └── counter/
+│       └── src/
+│           └── lib.rs       ← the program, the file you will edit
+├── tests/
+│   └── counter.ts           ← the test, in TypeScript
+├── target/
+│   └── deploy/
+│       └── counter-keypair.json   ← the keypair of the program&#x27;s address
+├── migrations/              ← optional scripts that run after a deploy
+├── app/                     ← empty, for a future web app
+├── Cargo.toml               ← Rust workspace
+├── package.json             ← JavaScript dependencies for the test
+├── rust-toolchain.toml      ← the Rust version for this project
+├── security.json            ← contact details published with the program
+└── tsconfig.json            ← TypeScript settings</pre>
+      </div>
+
+      <p>Most of the time you will only touch two files: <code>lib.rs</code>, the program, and <code>counter.ts</code>, the
+        test. The file <code>counter-keypair.json</code> deserves a mention too. It holds the keypair of your program's
+        address, and Anchor uses it to deploy, so keep it as you would keep a wallet.</p>
+
+      <h2 id="s4" data-short="the program"><span class="n">04</span>The program, piece by piece</h2>
+      <p>The project already comes with an example counter, but a slightly more complex one. Replace the whole content of
+        <code>programs/counter/src/lib.rs</code> with this version:</p>
+
+      <div class="code">
+        <div class="label"><span>rust · programs/counter/src/lib.rs</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>use anchor_lang::prelude::*;
+
+declare_id!(&quot;2StLTr1uGxrDZfuwsASgfCY3toAVWwju6eWNsePBFsD5&quot;);
+
+#[program]
+pub mod counter {
+    use super::*;
+
+    pub fn initialize(ctx: Context&lt;Initialize&gt;) -&gt; Result&lt;()&gt; {
+        ctx.accounts.counter.count = 0;
+        msg!(&quot;Counter created for {}&quot;, ctx.accounts.user.key());
+        Ok(())
+    }
+
+    pub fn increment(ctx: Context&lt;Increment&gt;) -&gt; Result&lt;()&gt; {
+        ctx.accounts.counter.count += 1;
+        msg!(&quot;Counter is now {}&quot;, ctx.accounts.counter.count);
+        Ok(())
+    }
+}
+
+#[derive(Accounts)]
+pub struct Initialize&lt;&#x27;info&gt; {
+    #[account(mut)]
+    pub user: Signer&lt;&#x27;info&gt;,
+    #[account(
+        init,
+        payer = user,
+        space = 8 + Counter::INIT_SPACE,
+        seeds = [b&quot;counter&quot;, user.key().as_ref()],
+        bump
+    )]
+    pub counter: Account&lt;&#x27;info, Counter&gt;,
+    pub system_program: Program&lt;&#x27;info, System&gt;,
+}
+
+#[derive(Accounts)]
+pub struct Increment&lt;&#x27;info&gt; {
+    pub user: Signer&lt;&#x27;info&gt;,
+    #[account(
+        mut,
+        seeds = [b&quot;counter&quot;, user.key().as_ref()],
+        bump
+    )]
+    pub counter: Account&lt;&#x27;info, Counter&gt;,
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct Counter {
+    pub count: u64,
+}</pre>
+      </div>
+
+      <div class="note warn">
+        <span class="t">[!] keep your own program ID</span>
+        <p>Before replacing the file, copy the address inside <code>declare_id!</code> from the original, and paste it back
+          into the new version. Every project gets a different one, so yours will not match the one shown here. If you lose
+          it, run <code>anchor keys sync</code>, which writes the correct address back into the file.</p>
+      </div>
+
+      <p>Now let's go through it in five pieces.</p>
+
+      <h3>1. The address</h3>
+      <div class="code">
+        <div class="label"><span>rust</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>use anchor_lang::prelude::*;
+
+declare_id!(&quot;2StLTr1uGxrDZfuwsASgfCY3toAVWwju6eWNsePBFsD5&quot;);</pre>
+      </div>
+      <p>The first line imports everything Anchor provides. <code>declare_id!</code> sets the program's address, the one
+        stored in <code>counter-keypair.json</code>. Anchor uses it to check that the program is running at the address it
+        expects.</p>
+
+      <h3>2. The instructions</h3>
+      <div class="code">
+        <div class="label"><span>rust</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>#[program]
+pub mod counter {
+    use super::*;
+
+    pub fn initialize(ctx: Context&lt;Initialize&gt;) -&gt; Result&lt;()&gt; {
+        ctx.accounts.counter.count = 0;
+        msg!(&quot;Counter created for {}&quot;, ctx.accounts.user.key());
+        Ok(())
+    }
+
+    pub fn increment(ctx: Context&lt;Increment&gt;) -&gt; Result&lt;()&gt; {
+        ctx.accounts.counter.count += 1;
+        msg!(&quot;Counter is now {}&quot;, ctx.accounts.counter.count);
+        Ok(())
+    }
+}</pre>
+      </div>
+      <p>The module marked with <code>#[program]</code> contains the instructions, and each <code>pub fn</code> becomes one
+        that anyone can call. Both receive a <code>ctx</code>, the context, which holds the accounts the instruction works
+        with, and both return <code>Ok(())</code> when everything went well. <code>msg!</code> writes a line in the
+        transaction logs, the same logs an explorer shows.</p>
+      <p>Notice how little the instructions do: one sets the number to zero and the other adds one. All the work of
+        creating the account and checking that it is the right one happens in the next two pieces.</p>
+
+      <h3>3. The accounts for initialize</h3>
+      <div class="code">
+        <div class="label"><span>rust</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>#[derive(Accounts)]
+pub struct Initialize&lt;&#x27;info&gt; {
+    #[account(mut)]
+    pub user: Signer&lt;&#x27;info&gt;,
+    #[account(
+        init,
+        payer = user,
+        space = 8 + Counter::INIT_SPACE,
+        seeds = [b&quot;counter&quot;, user.key().as_ref()],
+        bump
+    )]
+    pub counter: Account&lt;&#x27;info, Counter&gt;,
+    pub system_program: Program&lt;&#x27;info, System&gt;,
+}</pre>
+      </div>
+      <p>A struct marked with <code>#[derive(Accounts)]</code> lists the accounts an instruction needs, and the attributes
+        on each one tell Anchor what to check before running any code:</p>
+      <ul>
+        <li><code>user</code> is a <code>Signer</code>: the transaction must be signed by this wallet. It is marked
+          <code>mut</code> because its balance changes when it pays for the new account.</li>
+        <li><code>counter</code> is created by <code>init</code>, paid for by the user (<code>payer = user</code>), with room
+          for <code>space</code> bytes, at the PDA calculated from <code>seeds</code>. <code>bump</code> asks Anchor to find
+          the bump that makes the address valid.</li>
+        <li><code>system_program</code> is required because creating an account is a job for the System Program, which
+          Anchor calls for you.</li>
+      </ul>
+
+      <h3>4. The accounts for increment</h3>
+      <div class="code">
+        <div class="label"><span>rust</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>#[derive(Accounts)]
+pub struct Increment&lt;&#x27;info&gt; {
+    pub user: Signer&lt;&#x27;info&gt;,
+    #[account(
+        mut,
+        seeds = [b&quot;counter&quot;, user.key().as_ref()],
+        bump
+    )]
+    pub counter: Account&lt;&#x27;info, Counter&gt;,
+}</pre>
+      </div>
+      <p>Here <code>counter</code> is not created but modified, so it is marked <code>mut</code>. The seeds include the
+        address of the signer, which is what guarantees that each user can only increase their own counter. If someone
+        passes another person's counter, Anchor calculates the PDA from the signer's address, sees that it does not match and
+        rejects the transaction before <code>increment</code> runs.</p>
+
+      <h3>5. The data</h3>
+      <div class="code">
+        <div class="label"><span>rust</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>#[account]
+#[derive(InitSpace)]
+pub struct Counter {
+    pub count: u64,
+}</pre>
+      </div>
+      <p><code>#[account]</code> defines what a counter account stores: a single number, <code>count</code>, of type
+        <code>u64</code>, an unsigned integer of 8 bytes. <code>InitSpace</code> calculates that size for you, and that is
+        where the <code>space</code> in piece 3 comes from:</p>
+
+      <figure class="fig">
+        <div class="wrap">
+          <svg viewBox="0 0 720 172" role="img" aria-labelledby="f82-t"><title id="f82-t">The counter account holds 16 bytes: 8 bytes of discriminator added by Anchor and 8 bytes for the count.</title><defs><marker id="f82-fg" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-fg" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f82-am" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk" d="M0,0 L8,4 L0,8 z"/></marker><marker id="f82-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="mk-dim" d="M0,0 L8,4 L0,8 z"/></marker></defs><text class="t-dim" x="24" y="18">the 16 bytes of data in your counter account</text><rect class="cell" x="24" y="28" width="40" height="40"/><text class="t-dim" x="44.0" y="53" text-anchor="middle">0</text><rect class="cell" x="64" y="28" width="40" height="40"/><text class="t-dim" x="84.0" y="53" text-anchor="middle">1</text><rect class="cell" x="104" y="28" width="40" height="40"/><text class="t-dim" x="124.0" y="53" text-anchor="middle">2</text><rect class="cell" x="144" y="28" width="40" height="40"/><text class="t-dim" x="164.0" y="53" text-anchor="middle">3</text><rect class="cell" x="184" y="28" width="40" height="40"/><text class="t-dim" x="204.0" y="53" text-anchor="middle">4</text><rect class="cell" x="224" y="28" width="40" height="40"/><text class="t-dim" x="244.0" y="53" text-anchor="middle">5</text><rect class="cell" x="264" y="28" width="40" height="40"/><text class="t-dim" x="284.0" y="53" text-anchor="middle">6</text><rect class="cell" x="304" y="28" width="40" height="40"/><text class="t-dim" x="324.0" y="53" text-anchor="middle">7</text><rect class="cell f" x="344" y="28" width="40" height="40" style="stroke:var(--amber)"/><text class="t-dim" x="364.0" y="53" text-anchor="middle">8</text><rect class="cell f" x="384" y="28" width="40" height="40" style="stroke:var(--amber)"/><text class="t-dim" x="404.0" y="53" text-anchor="middle">9</text><rect class="cell f" x="424" y="28" width="40" height="40" style="stroke:var(--amber)"/><text class="t-dim" x="444.0" y="53" text-anchor="middle">10</text><rect class="cell f" x="464" y="28" width="40" height="40" style="stroke:var(--amber)"/><text class="t-dim" x="484.0" y="53" text-anchor="middle">11</text><rect class="cell f" x="504" y="28" width="40" height="40" style="stroke:var(--amber)"/><text class="t-dim" x="524.0" y="53" text-anchor="middle">12</text><rect class="cell f" x="544" y="28" width="40" height="40" style="stroke:var(--amber)"/><text class="t-dim" x="564.0" y="53" text-anchor="middle">13</text><rect class="cell f" x="584" y="28" width="40" height="40" style="stroke:var(--amber)"/><text class="t-dim" x="604.0" y="53" text-anchor="middle">14</text><rect class="cell f" x="624" y="28" width="40" height="40" style="stroke:var(--amber)"/><text class="t-dim" x="644.0" y="53" text-anchor="middle">15</text><path class="ax" d="M24,78 V84 H344 V78"/><path class="ax" d="M344,78 V84 H664 V78"/><text x="184" y="104" text-anchor="middle">discriminator</text><text class="t-dim" x="184" y="122" text-anchor="middle">added by Anchor: "this is a Counter"</text><text class="t-am" x="504" y="104" text-anchor="middle">count (u64)</text><text class="t-dim" x="504" y="122" text-anchor="middle">your number</text><text x="360" y="160" text-anchor="middle">space = 8 + Counter::INIT_SPACE = 8 + 8 = 16 bytes</text></svg>
+        </div>
+        <figcaption>fig. 2: the data inside a counter account.</figcaption>
+      </figure>
+
+      <p>The first 8 bytes are the <strong>discriminator</strong>, a fixed value Anchor writes at the start of every account
+        it creates so it can tell what kind of data an account holds. That is why <code>space</code> is always
+        <code>8 +</code> the size of your data.</p>
+
+      <h2 id="s5" data-short="the test"><span class="n">05</span>The test</h2>
+      <p>Replace the content of <code>tests/counter.ts</code> with this:</p>
+
+      <div class="code">
+        <div class="label"><span>typescript · tests/counter.ts</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>import * as anchor from &quot;@anchor-lang/core&quot;;
+import { Program } from &quot;@anchor-lang/core&quot;;
+import { Counter } from &quot;../target/types/counter&quot;;
+
+describe(&quot;counter&quot;, () =&gt; {
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
+  const program = anchor.workspace.counter as Program&lt;Counter&gt;;
+
+<span class="c">  // The address of this wallet&#x27;s counter: the PDA of [&quot;counter&quot;, wallet]</span>
+  const [counter] = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from(&quot;counter&quot;), provider.wallet.publicKey.toBuffer()],
+    program.programId
+  );
+
+  it(&quot;creates and increments the counter&quot;, async () =&gt; {
+<span class="c">    // Create the counter only the first time</span>
+    const existing = await program.account.counter.fetchNullable(counter);
+    if (!existing) {
+      const tx = await program.methods.initialize().accountsPartial({ counter }).rpc();
+      console.log(&quot;    initialize:&quot;, tx);
+    }
+
+    const tx = await program.methods.increment().accountsPartial({ counter }).rpc();
+    console.log(&quot;    increment: &quot;, tx);
+
+    const account = await program.account.counter.fetch(counter);
+    console.log(&quot;    counter:   &quot;, counter.toBase58());
+    console.log(&quot;    count:     &quot;, account.count.toString());
+  });
+});</pre>
+      </div>
+
+      <p>Reading from the top:</p>
+      <ul>
+        <li><code>AnchorProvider.env()</code> loads the network and the wallet from <code>Anchor.toml</code> and the command
+          line, so the same test runs on your computer or on devnet.</li>
+        <li><code>anchor.workspace.counter</code> gives you a client for the program, generated from its IDL, a description
+          of its instructions and accounts that Anchor creates when it builds.</li>
+        <li><code>findProgramAddressSync</code> calculates the counter's PDA with the same seeds as the program.</li>
+        <li>The test creates the counter only if it does not exist yet, increases it and prints the count. You do not need to
+          pass <code>user</code>: Anchor fills in signer accounts with your wallet.</li>
+      </ul>
+
+      <h2 id="s6" data-short="build and test"><span class="n">06</span>Build and test on your computer</h2>
+      <p>Build the program and run the test:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>anchor build
+anchor test</pre></div>
+      <p><code>anchor build</code> compiles the program into <code>target/deploy/counter.so</code> and generates its IDL.
+        <code>anchor test</code> then starts a local network, deploys the program on it, runs the test and shuts the network
+        down. The first build takes a few minutes, because it downloads and compiles the dependencies.</p>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 1</span><span>example output</span></div>
+<pre><span class="pr">$</span> <span class="cmd">anchor test</span>
+<span class="pr">…build, start the local network and deploy…</span>
+
+  counter
+    initialize: 3Jx8kR2v…Wq2P
+    increment:  5Tn1aHc9…Vb7c
+    counter:    2GUZnNiyErGJRXUCzG7DPZ45YEkPEWt1o75hoZrJXprM
+    count:      <span class="hl">1</span>                      <span class="ann">← initialize set 0, increment made it 1</span>
+    ✔ creates and increments the counter (1250ms)
+
+
+  <span class="hl">1 passing</span> (1s)</pre>
+        <figcaption>the test on the local network. Your signatures and addresses will be different.</figcaption>
+      </figure>
+
+      <div class="note">
+        <span class="t">[i] about these screens</span>
+        <p>The screens in this guide show example output, with the format Anchor 1.2.2 uses. Your addresses, signatures and
+          times will be different, and Anchor may print a few extra lines while it builds and starts the network.</p>
+      </div>
+
+      <h2 id="s7" data-short="deploy"><span class="n">07</span>Deploy to devnet</h2>
+      <p>Deploying copies the compiled program to the network, where it stays in an account at your program's address. That
+        account needs a refundable deposit proportional to the size of the program, so make sure you have at least 2 SOL on
+        devnet:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>solana balance
+anchor deploy --provider.cluster devnet</pre></div>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 2</span><span>example output</span></div>
+<pre><span class="pr">$</span> <span class="cmd">anchor deploy --provider.cluster devnet</span>
+Deploying cluster: https://api.devnet.solana.com
+Upgrade authority: /home/you/.config/solana/id.json   <span class="ann">← your wallet can upgrade it</span>
+Deploying program "counter"...
+Program path: /home/you/counter/target/deploy/counter.so...
+<span class="pr">…uploading the program…</span>
+Program ID: <span class="hl">2StLTr1uGxrDZfuwsASgfCY3toAVWwju6eWNsePBFsD5</span>
+✓ Idl metadata created/updated
+<span class="hl">Deploy success</span></pre>
+        <figcaption>deploying to devnet, shortened. Your program ID will be different.</figcaption>
+      </figure>
+
+      <p><code>Program ID</code> is your program's address on devnet. The upgrade authority is your wallet, so you can deploy
+        new versions of the code to the same address later. Anchor also publishes the IDL, which lets explorers and other
+        apps read your program's accounts.</p>
+
+      <h2 id="s8" data-short="call it"><span class="n">08</span>Call it on devnet</h2>
+      <p>The test you wrote is also a way to call the program. Run it against devnet, telling Anchor to skip the build, the
+        deploy and the local network:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button">copy</button></div>
+<pre>anchor test --skip-build --skip-deploy --skip-local-validator --provider.cluster devnet</pre></div>
+      <p>Run the same command a second time:</p>
+
+      <figure class="term">
+        <div class="term-bar"><span>screen 3</span><span>example output</span></div>
+<pre><span class="pr">$</span> <span class="cmd">anchor test --skip-build --skip-deploy --skip-local-validator --provider.cluster devnet</span>
+
+  counter
+    initialize: 4bQw7uNe…Ls3T
+    increment:  2HfZp6Ka…Dq8e
+    counter:    2GUZnNiyErGJRXUCzG7DPZ45YEkPEWt1o75hoZrJXprM
+    count:      <span class="hl">1</span>
+    ✔ creates and increments the counter (3104ms)
+
+  1 passing (3s)
+
+<span class="pr">$</span> <span class="cmd">anchor test --skip-build --skip-deploy --skip-local-validator --provider.cluster devnet</span>
+
+  counter
+    increment:  6YcAe1Mz…Pt4K                 <span class="ann">← no initialize: the counter already exists</span>
+    counter:    2GUZnNiyErGJRXUCzG7DPZ45YEkPEWt1o75hoZrJXprM
+    count:      <span class="hl">2</span>
+    ✔ creates and increments the counter (1987ms)
+
+  1 passing (2s)</pre>
+        <figcaption>calling the program on devnet twice: the count keeps going up.</figcaption>
+      </figure>
+
+      <p>The first run creates your counter and leaves it at 1. The second finds it already there, skips
+        <code>initialize</code> and leaves it at 2. Each run sends real transactions to devnet, and the counter keeps its
+        value between them, because it lives in an account on the network, not on your computer.</p>
+
+      <h2 id="s9" data-short="explorer"><span class="n">09</span>See it in the explorer</h2>
+      <p>Open your program and your counter in the explorer, replacing the addresses with the ones from your output:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>https://explorer.solana.com/address/&lt;PROGRAM_ID&gt;?cluster=devnet
+https://explorer.solana.com/address/&lt;COUNTER_ADDRESS&gt;?cluster=devnet</pre></div>
+      <p>The program's page shows it as an executable account with your wallet as upgrade authority, and lists every
+        transaction that called it. On the counter's page you will see that its owner is your program and that it holds 16
+        bytes of data. Explorers that read the IDL Anchor published can also show the count already decoded.</p>
+
+      <h2 id="s10" data-short="clean up"><span class="n">10</span>Clean up</h2>
+      <p>When you no longer need the program, you can close it and recover the deposit:</p>
+      <div class="code"><div class="label"><span>bash</span><button class="copy" type="button" data-raw>copy</button></div>
+<pre>solana program close &lt;PROGRAM_ID&gt; --bypass-warning</pre></div>
+      <div class="note crit">
+        <span class="t">[!] closing is permanent</span>
+        <p>A closed program cannot be deployed again at the same address. On devnet that only means using a new address
+          for your next deploy, but on mainnet it is irreversible.</p>
+      </div>
+
+      <h2 id="s11" data-short="summary"><span class="n">11</span>Summary</h2>
+      <p>You wrote a program with two instructions, defined which accounts each one needs and what Anchor must check, stored
+        each user's data in a PDA, tested everything on your computer and used the same test to call the program on devnet.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>anchor init</code></td><td>Creates a new project.</td></tr>
+          <tr><td><code>anchor build</code></td><td>Compiles the program and generates its IDL.</td></tr>
+          <tr><td><code>anchor test</code></td><td>Builds, starts a local network, deploys and runs the tests.</td></tr>
+          <tr><td><code>anchor deploy</code></td><td>Deploys the program to the network in <code>--provider.cluster</code>.</td></tr>
+          <tr><td><code>anchor keys sync</code></td><td>Writes the program's real address into <code>declare_id!</code>.</td></tr>
+          <tr><td><code>solana program close</code></td><td>Closes a program and returns its deposit.</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tbl"><table>
+        <thead><tr><th>In the code</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td><code>#[program]</code></td><td>The module whose functions are the instructions.</td></tr>
+          <tr><td><code>#[derive(Accounts)]</code></td><td>The accounts an instruction receives, and what to check on each.</td></tr>
+          <tr><td><code>#[account]</code></td><td>The data an account stores.</td></tr>
+          <tr><td><code>init, payer, space</code></td><td>Create the account, who pays its deposit and how big it is.</td></tr>
+          <tr><td><code>seeds, bump</code></td><td>The account is the PDA of these seeds.</td></tr>
+          <tr><td><code>Signer</code></td><td>The account must have signed the transaction.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Sources</h3>
+      <ul class="meta">
+        <li><a href="https://solana.com/docs/intro/installation" target="_blank" rel="noopener">Solana: installation</a></li>
+        <li><a href="https://v2.anchor-lang.com/docs/v1/get-started/" target="_blank" rel="noopener">Anchor: get started (v1)</a></li>
+        <li><a href="https://www.anchor-lang.com/docs/updates/release-notes/1-0-0" target="_blank" rel="noopener">Anchor: 1.0 release notes</a></li>
+      </ul>
+    </article>
+
+    <hr>
+    <nav class="pager" id="pager" aria-label="Previous and next"></nav>
+    <hr>
+    <footer>solana field manual · last updated 18 Nov 2026</footer>
+  </main>
+</div>
+
+<script src="../data/articles.js" defer></script>
+<script src="../js/helpers/clock.js" defer></script>
+<script src="../js/helpers/sidebar.js" defer></script>
+<script src="../js/helpers/scroll-spy.js" defer></script>
+<script src="../js/helpers/copy-code.js" defer></script>
+<script src="../js/helpers/glossary-filter.js" defer></script>
+<script src="../js/main.js" defer></script>
+</body>
+</html>
